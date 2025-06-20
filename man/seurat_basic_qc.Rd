@@ -4,16 +4,16 @@
 \alias{seurat_basic_qc}
 \title{Seurat basic QC}
 \usage{
-seurat_basic_qc(seurat_obj, out_path = NULL, plot = T, ...)
+seurat_basic_qc(seurat_obj, out_path = NULL, save_plot = T, verbose = TRUE)
 }
 \arguments{
 \item{seurat_obj}{A Seurat object.}
 
 \item{out_path}{Character. Directory to save QC plots. Required.}
 
-\item{plot}{Logical. Whether to generate QC plots. Default: TRUE.}
+\item{verbose}{Logical. Whether to print \code{leo.log} messages. Default: TRUE.}
 
-\item{...}{Additional arguments yet to implicate.}
+\item{plot}{Logical. Whether to generate QC plots. Default: TRUE.}
 }
 \value{
 A filtered Seurat object.

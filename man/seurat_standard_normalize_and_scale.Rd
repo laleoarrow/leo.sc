@@ -5,33 +5,34 @@
 \title{Standard seurat normalize_and_scale}
 \usage{
 seurat_standard_normalize_and_scale(
-  sc_path,
-  project_name = NULL,
-  normalize_method = c("classic", "sctransform"),
+  seurat_obj,
+  normalize_method = c("classic", "sctransform", "sctransform&regress"),
   conserve.memory = F,
   cluster_resolution = 1,
-  plot = T,
-  n_hv_gene = 10
+  plot_dir = NULL,
+  n_hv_gene = 10,
+  verbose = TRUE
 )
 }
 \arguments{
-\item{sc_path}{Character. Path to the 10X data directory containing matrix files.}
-
-\item{project_name}{Character. Project name for Seurat object. Defaults to basename(sc_path) if NULL.}
+\item{seurat_obj}{A Seurat object.}
 
 \item{normalize_method}{Character. Normalization method:
 \itemize{
 \item "classic" (LogNormalize + FindVariableFeatures + ScaleData)
 \item "sctransform" (SCTransform).
+\item "sctransform&regress" (SCTransform + regress out unwanted sources \link{currently only percent.mt}).
 }}
 
 \item{conserve.memory}{Logical. Whether to conserve memory in SCTransform. Default: FALSE.}
 
 \item{cluster_resolution}{Numeric. Resolution for FindClusters. Default: 1.0.}
 
-\item{plot}{Logical. Whether to save a variable feature plot. Default: TRUE.}
+\item{plot_dir}{Character. Directory to save variable feature plot. Default: NULL (i.e., not plot).}
 
 \item{n_hv_gene}{Integer. Number of top variable features to label. Default: 10.}
+
+\item{verbose}{Logical. Whether to print \code{leo.log} messages. Default: TRUE.}
 }
 \value{
 A Seurat object after normalization, scaling, clustering, and UMAP embedding.

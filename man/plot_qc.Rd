@@ -4,7 +4,14 @@
 \alias{plot_qc}
 \title{Plot QC metrics}
 \usage{
-plot_qc(seurat_obj, out_path, prefix = "before_")
+plot_qc(
+  seurat_obj,
+  out_path,
+  prefix = "before_",
+  save_plot = T,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{seurat_obj}{A Seurat object with QC metrics.}
@@ -12,6 +19,8 @@ plot_qc(seurat_obj, out_path, prefix = "before_")
 \item{out_path}{Character. Directory to save plots.}
 
 \item{prefix}{Character. Filename prefix. Default: "before_".}
+
+\item{verbose}{Logical. Whether to print \code{leo.log} messages. Default: TRUE.}
 }
 \value{
 Invisible NULL.

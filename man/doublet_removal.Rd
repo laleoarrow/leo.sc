@@ -6,19 +6,18 @@
 \usage{
 doublet_removal(
   seurat_obj = sc_matrix,
-  project_name,
-  out_path = ".",
+  out_path,
   pN = 0.25,
   PCs = 1:20,
   nPCs_for_pK = 1:10,
   doublet_rate = NULL,
-  sct = FALSE
+  sct = FALSE,
+  slim = TRUE,
+  verbose = TRUE
 )
 }
 \arguments{
 \item{seurat_obj}{Seurat object (after normalization & PCA).}
-
-\item{project_name}{Character. Used for naming outputs.}
 
 \item{out_path}{Character. Directory to save UMAP plots. Default: "."}
 
@@ -31,6 +30,10 @@ doublet_removal(
 \item{doublet_rate}{Numeric. Expected doublet rate (0–1). If NULL, looked up via \code{doublet_rate_dictionary}.}
 
 \item{sct}{Logical. Whether data is SCTransformed. Default: FALSE.}
+
+\item{slim}{Logical. Whether to slim the Seurat object to only leave RNA count. Default: TRUE.}
+
+\item{verbose}{Logical. Whether to print \code{leo.log} messages. Default: TRUE.}
 }
 \value{
 Seurat object with doublets removed.

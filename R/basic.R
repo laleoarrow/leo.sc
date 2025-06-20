@@ -52,9 +52,9 @@ read_sc_data <- function(sc_path,
 #'
 #' @param seurat_obj A Seurat object.
 #' @param normalize_method Character. Normalization method:
-#'   - "classic" (LogNormalize + FindVariableFeatures + ScaleData)
-#'   - "sctransform" (SCTransform).
-#'   - "sctransform&regress" (SCTransform + regress out unwanted sources [currently only `percent.mt`]).
+#'  - "classic" (LogNormalize + FindVariableFeatures + ScaleData)
+#'  - "sctransform" (SCTransform).
+#'  - "sctransform&regress" (SCTransform + regress out unwanted sources [currently only percent.mt]).
 #' @param conserve.memory Logical. Whether to conserve memory in SCTransform. Default: FALSE.
 #' @param cluster_resolution Numeric. Resolution for FindClusters. Default: 1.0.
 #' @param n_hv_gene Integer. Number of top variable features to label. Default: 10.
@@ -119,7 +119,7 @@ seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c
 #' @importFrom Seurat PercentageFeatureSet
 #' @importFrom leo.basic leo_log
 #' @importFrom patchwork wrap_plots plot_annotation
-#' @importFrom cowplot::plot_grid
+#' @importFrom cowplot plot_grid
 #' @export
 seurat_basic_qc <- function(seurat_obj, out_path = NULL, save_plot = T, verbose = TRUE){
   if (save_plot & is.null(out_path)) {stop("output path for qc plot is required")}
@@ -295,7 +295,7 @@ doublet_removal <- function(seurat_obj=sc_matrix, out_path,
   # visualize & subset
   seurat_obj@meta.data$doublet.class <- factor(seurat_obj$doublet.class, levels = c("Singlet", "Doublet"))
   dc <- DimPlot(seurat_obj, reduction = "umap", group.by = "doublet.class", cols = c("gold", "black")) +
-    ggtitle("Doublet distribution") + theme(plot.title = element_text(hjust = 0, face = "bold"))
+    ggtitle("Doublet distribution") & theme(plot.title = element_text(hjust = 0, face = "bold"))
 
   seurat_obj <- subset(seurat_obj, subset = doublet.class != "Doublet")
   post_cluster <- DimPlot(seurat_obj, reduction = "umap", group.by = "seurat_clusters", label = TRUE) +
@@ -343,4 +343,32 @@ doublet_rate_dictionary <- function(n_cells) {
   keys    <- as.numeric(names(dict))
   nearest <- keys[which.min(abs(keys - n_cells))]
   return(unname(dict[as.character(nearest)]))
+}
+
+#' get basic summary of a seurat object
+#'
+#' @param seurat_obj Seurat object
+#' @param assay character. assay name, defaults to active assay
+#' @param slot character. data slot ("counts", "data" or "scale.data")
+#' @return named list with total_genes, total_cells, avg_genes_per_cell, genes_per_cell
+#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom leo.basic leo_log
+#' @export
+seurat_basic_info <- function(seurat_obj, assay = NULL, slot = "counts") {
+  if (is.null(assay)) assay <- DefaultAssay(seurat_obj)
+  mat <- GetAssayData(seurat_obj, assay = assay, slot = slot)
+  total_genes       <- nrow(mat)
+  total_cells       <- ncol(mat)
+  genes_per_cell    <- colSums(mat > 0)
+  avg_genes_per_cell <- mean(genes_per_cell)
+
+  leo.basic::leo_log(sprintf("total genes: %d", total_genes))
+  leo.basic::leo_log(sprintf("total cells: %d", total_cells))
+  leo.basic::leo_log(sprintf("avg genes per cell: %.2f", avg_genes_per_cell))
+
+  list(
+    total_genes        = total_genes,
+    total_cells        = total_cells,
+    avg_genes_per_cell = avg_genes_per_cell
+  )
 }
