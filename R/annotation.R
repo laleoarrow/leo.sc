@@ -123,18 +123,16 @@ get_cluster_counts <- function(seurat_obj, cluster_col) {
 #' @seealso \code{\link{get_cluster_counts}}
 #' @importFrom dplyr count arrange desc filter pull
 #' @importFrom rlang sym
-#' @export
-#' #' \dontrun{
+#' @examples
 #' # Keep clusters comprising ≥0.5% of cells
 #' keep_pct <- filter_clusters_by_size(all,
 #'                                     "harmony_clusters",
 #'                                     prop_threshold = 0.005)
-#'
 #' # Keep clusters with at least 100 cells
 #' keep_abs <- filter_clusters_by_size(all,
 #'                                     "harmony_clusters",
 #'                                     abs_threshold = 100)
-#' }
+#' @export
 filter_clusters_by_size <- function(seurat_obj,
                                     cluster_col,
                                     prop_threshold = 0.001,
