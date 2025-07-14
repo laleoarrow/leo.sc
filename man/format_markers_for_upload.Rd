@@ -12,26 +12,19 @@ format_markers_for_upload(
 )
 }
 \arguments{
-\item{markers_tbl}{A tibble / data.frame \strong{containing at least} the
-columns \code{cluster}, \code{gene}, and the column named in \code{order_by}.}
+\item{markers_tbl}{A tibble / data.frame \strong{containing at least} the columns \code{cluster}, \code{gene}, and the column named in \code{order_by}.}
 
-\item{top_n}{Integer. Number of genes to keep for each cluster
-(default \strong{10}).}
+\item{top_n}{Integer. Number of genes to keep for each cluster (default \strong{10}).}
 
-\item{order_by}{Column used to rank genes \emph{within} each cluster.
-Accepts either a \strong{character string} (e.g. \code{"avg_log2FC"}) or a
-\emph{bare} column name (unquoted). Default \code{"avg_log2FC"}.}
+\item{order_by}{Column used to rank genes \emph{within} each cluster. Accepts either a \strong{character string} (e.g. \code{"avg_log2FC"}) or a \emph{bare} column name (unquoted). Default \code{"avg_log2FC"}.}
 
 \item{verbose}{Logical. Print \code{leo_log()} messages? Default \strong{TRUE}.}
 }
 \value{
-A length-one character vector: newline-separated text ready to
-copy or write.
+A length-one character vector
 }
 \description{
-Convert a Seurat/Scanpy \strong{marker table} into plain-text lines of the form
-\verb{cluster_<id>:geneA,geneB,…}, one line per cluster.
-Such text can be pasted into web tools or saved to a file.
+Convert a Seurat \strong{marker table} into plain-text lines of the form \verb{cluster_<id>:geneA,geneB,…}, one line per cluster.
 }
 \examples{
 txt <- format_markers_for_upload(top10, top_n = 15, order_by = "p_val_adj")
