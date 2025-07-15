@@ -201,6 +201,7 @@ plot_gw_density <- function(data, features, ncol = 2) {
 #' @param pt.size Point size
 #' @param dpi DPI for rasterization if >1e5 cells
 #' @return ggplot2 object
+#'
 #' @importFrom Seurat Embeddings Idents
 #' @importFrom SeuratObject DefaultDimReduc
 #' @importFrom ggplot2 ggplot aes labs theme_void geom_point
