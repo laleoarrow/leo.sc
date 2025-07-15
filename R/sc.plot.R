@@ -172,10 +172,8 @@ plot_alluvial_sc <- function(obj,
 #' print(p)
 #' @export
 plot_gw_density <- function(data, features, ncol = 2) {
-  if (!inherits(data, "Seurat")) stop("`data` must be a Seurat object")
   missing <- setdiff(features, rownames(data))
-  if (length(missing)) stop("Features not found: ", paste(missing, collapse = ", "))
-
+  if (length(missing)) leo_log("Features not found: ", paste(missing, collapse = ", "), level = "danger")
   plots <- lapply(features, function(gene) {
     Nebulosa::plot_density(
       object    = data,
@@ -189,6 +187,51 @@ plot_gw_density <- function(data, features, ncol = 2) {
       ggplot2::coord_fixed() +
       ggplot2::theme_void()
   })
-
   patchwork::wrap_plots(plots, ncol = ncol)
+}
+
+#' Plot Highlight a cluster on a dimensional reduction
+#'
+#' @param obj A Seurat object
+#' @param cluster_id Cluster identifier to highlight
+#' @param reduction Dimensional reduction name (defaults to active reduction)
+#' @param group.by Metadata column or NULL to use identities
+#' @param highlight.col Color for highlighted cluster
+#' @param other.col Color for other cells
+#' @param pt.size Point size
+#' @param dpi DPI for rasterization if >1e5 cells
+#' @return ggplot2 object
+#' @importFrom Seurat Embeddings Idents
+#' @importFrom SeuratObject DefaultDimReduc
+#' @importFrom ggplot2 ggplot aes labs theme_void geom_point
+#' @importFrom ggrastr geom_point_rast
+#' @importFrom leo.basic leo_log
+#' @export
+plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by = NULL,
+                                   highlight.col = "red", other.col = "grey80",
+                                   pt.size = 1, dpi = 300) {
+  if (is.null(reduction)) reduction <- SeuratObject::DefaultDimReduc(obj)
+  coords <- Seurat::Embeddings(obj, reduction)[, 1:2]
+  grp <- if (is.null(group.by)) Seurat::Idents(obj) else obj@meta.data[[group.by]]
+
+  df <- data.frame(Dim1 = coords[,1], Dim2 = coords[,2], grp = as.character(grp), stringsAsFactors = FALSE)
+  df_other <- df[df$grp != cluster_id, ]
+  df_high  <- df[df$grp == cluster_id, ]
+  use_raster <- nrow(df) > 1e5
+  if (use_raster) {
+    leo.basic::leo_log("More than 100,000 cells detected, using rasterized points for performance.")
+    p <- ggplot2::ggplot() +
+      ggrastr::geom_point_rast(data = df_other, aes(Dim1,Dim2),
+                               color = other.col, size = pt.size, raster.dpi = dpi) +
+      ggrastr::geom_point_rast(data = df_high, aes(Dim1,Dim2),
+                               color = highlight.col, size = pt.size, raster.dpi = dpi)
+  } else {
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_point(data = df_other, aes(Dim1,Dim2),
+                          color = other.col, size = pt.size) +
+      ggplot2::geom_point(data = df_high, aes(Dim1,Dim2),
+                          color = highlight.col, size = pt.size)
+  }
+  p + ggplot2::labs(title = paste0("Cluster ", cluster_id, " highlighted")) +
+    ggplot2::theme_void()
 }

@@ -132,58 +132,6 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
   return(keep_clusters)
 }
 
-#' Highlight one cluster on UMAP
-#'
-#' @param obj           A Seurat object
-#' @param cluster_id    The cluster to highlight (matching levels of `group.by`)
-#' @param reduction     Reduction slot (default "umap.harmony")
-#' @param group.by      Metadata column with cluster IDs (default "harmony_clusters")
-#' @param highlight.col Color for the highlighted cluster (default "red")
-#' @param other.col     Color for all other clusters (default "grey80")
-#' @param pt.size       Point size (default 1)
-#' @param raster        Logical, rasterize points for speed (default TRUE)
-#' @param dpi           Rasterization DPI (default 72)
-#' @return ggplot2 object
-#' @importFrom Seurat Embeddings
-#' @importFrom ggplot2 ggplot aes labs theme_void
-#' @importFrom ggrastr geom_point_rast
-#' @examples
-#' # Highlight cluster 34 on the harmony UMAP
-#' highlightCluster(all, cluster_id = "34")
-#' @export
-highlightCluster <- function(obj,
-                             cluster_id,
-                             reduction     = "umap.harmony",
-                             group.by      = "harmony_clusters",
-                             highlight.col = "red",
-                             other.col     = "grey80",
-                             pt.size       = 1,
-                             raster        = TRUE,
-                             dpi           = 72) {
-  coords <- Seurat::Embeddings(obj, reduction)[, 1:2]
-  df <- data.frame(
-    Dim1 = coords[,1],
-    Dim2 = coords[,2],
-    grp  = obj@meta.data[[group.by]]
-  )
-  df_other <- df[df$grp != cluster_id, ]
-  df_high  <- df[df$grp == cluster_id, ]
-
-  geom_fn <- if (raster) {
-    function(...) ggrastr::geom_point_rast(..., raster.dpi = dpi)
-  } else {
-    ggplot2::geom_point
-  }
-
-  ggplot2::ggplot() +
-    geom_fn(data = df_other, aes(Dim1, Dim2),
-            color = other.col, size = pt.size) +
-    geom_fn(data = df_high,  aes(Dim1, Dim2),
-            color = highlight.col, size = pt.size) +
-    labs(title = paste0("Cluster ", cluster_id, " highlighted")) +
-    theme_void()
-}
-
 #' Calculate and plot ROGUE index for a Seurat object, with inline filtering
 #'
 #' Filters raw counts by minimum cells and genes, computes entropy and ROGUE metrics.
