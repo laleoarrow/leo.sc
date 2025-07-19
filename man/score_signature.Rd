@@ -17,7 +17,7 @@ score_signature(sc_obj, signature_list, seed = 1)
 A Seurat object with module scores added to the metadata.
 }
 \description{
-Score sc_obj with signature list
+This function calculates module scores for a Seurat object based on a list of gene sets.
 }
 \examples{
 \dontrun{

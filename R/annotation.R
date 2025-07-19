@@ -252,6 +252,8 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
 
 #' Score sc_obj with signature list
 #'
+#' This function calculates module scores for a Seurat object based on a list of gene sets.
+#'
 #' @param sc_obj A Seurat object.
 #' @param signature_list list. A list of gene sets, where each element is a character vector of gene names.
 #' @param seed An integer seed for reproducibility. Default is 1.
@@ -277,6 +279,8 @@ score_signature <- function(sc_obj, signature_list, seed = 1) {
 }
 
 #' Plot heatmap of signature scores
+#'
+#' This function generates a heatmap of signature scores. You should do this after score_signature().
 #'
 #' @param sc_obj A Seurat object.
 #' @param signature_list list. A list of gene sets, where each element is a character vector of gene names.
@@ -391,4 +395,49 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
   dev.off()
 }
 
+#' Locate most distinguishing markers between two clusters
+#'
+#' @param sc_obj       Seurat object
+#' @param ident1       First cluster id (string)
+#' @param ident2       Second cluster id (string)
+#' @param assay        Assay name, default "RNA"
+#' @param test.use     DE test, one of "wilcox","roc","MAST"; default "wilcox"
+#' @param pval.adj     Adjusted p‐value cutoff, default 0.05
+#' @param logfc        |log2FC| cutoff, default 0.5
+#' @param min.pct1     Minimum detection pct in marker group, default 0.5
+#' @param max.pct2     Maximum detection pct in other group, default 0.2、
+#' @param return_top_n Number of top markers to return for each group, default 1.
+#'
+#' @return named vector c(marker1,marker2)
+#' @export
+#' @importFrom Seurat FindMarkers Idents DefaultAssay
+#' @importFrom dplyr arrange slice_head
+#' @examples
+#' \dontrun{
+#' tops <- locate_most_different_g_in_2_group(pbmc, "seurat_clusters", "4","5")
+#' }
+locate_most_different_g_in_2_group <- function(sc_obj, ident1, ident2, assay = "RNA",
+                                               test.use = "wilcox", pval.adj = 0.05,
+                                               logfc = 0.5, min.pct1 = 0.5, max.pct2 = 0.2
+                                               return_top_n = 1) {
+  DefaultAssay(sc_obj)<-assay
+  deg <- FindMarkers(sc_obj,ident.1=ident1,ident.2=ident2,
+                     assay=assay,test.use=test.use,
+                     logfc.threshold=logfc,min.pct=min.pct)
+  # marker for ident1
+  m1 <- deg[ deg$p_val_adj < pval.adj & deg$avg_log2FC > logfc &
+               deg$pct.1 >= min.pct & deg$pct.2 <= max.pct, ]
+  # marker for ident2
+  m2 <- deg[ deg$p_val_adj < pval.adj & deg$avg_log2FC < -logfc &
+               deg$pct.2 >= min.pct & deg$pct.1 <= max.pct, ]
 
+  if (return_top_n == 1) {
+    top1 <- if(nrow(m1)) rownames(m1)[which.max(m1$avg_log2FC)] else NA
+    top2 <- if(nrow(m2)) rownames(m2)[which.min(m2$avg_log2FC)] else NA
+    return(list(ident1 = top1, ident2 = top2))
+  }
+
+  m1 <- m1 %>% arrange(desc(avg_log2FC)) %>% slice_head(n = return_top_n)
+  m2 <- m2 %>% arrange(avg_log2FC) %>% slice_head(n = return_top_n)
+  return(list(ident1 = m1, ident2 = m2))
+}

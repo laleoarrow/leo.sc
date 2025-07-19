@@ -13,4 +13,8 @@ leo.marker
 \description{
 A minimal nested list for quick access to all kinds of markers collected in \code{leo.sc}.
 }
+\examples{
+devtools::load_all("/Users/leoarrow/project/mypackage/leo.sc")
+t_nk_marker <- leo.marker$t_nk_marker$data
+}
 \keyword{datasets}

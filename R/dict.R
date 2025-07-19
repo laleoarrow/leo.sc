@@ -35,6 +35,25 @@
   TFR             = c("FOXP3","IL2RA","CXCR5","PDCD1","IL10","CCR4","CD69")
 )
 
+.t_nk_marker <- list(
+  `T` = c("CD3D","CD3E"), # CD3+ Complex
+  CD4 = c("CD4","CD40LG"), # CD4+; Helper T cells
+  CD8 = c("CD8A", "CD8B"), # CD8+; CD8A~α; CD8B~β
+  Tn = c("CCR7","SELL","LRRN3"), # CCR7-Naive
+  Tem = c("GZMK","CCL5"),
+  Tcm = c("ANXA1","CD27","CD28"),
+  Treg = c("FOXP3"), # CD4+CD25+FOXP3+; Regulatory T cells
+  CTL = c("GZMB"), # Cytotoxic T cells
+  # DPT = c("TYROBP"), # Not so sure
+  DNT = c("TRDV2"), # `CD4-8-` TRDV2 can also be gdT's marker
+  gdT =c("TRGV9"), # Integrating single-cell RNA and T cell/B cell receptor sequencing with mass cytometry reveals dynamic trajectories of human peripheral immune cells from birth to old age
+  MAIT = c("KLRB1"), # Also known as `T-mito`;KLRB1~CD161
+  # NKT = c("S1PR1", "IL32"), # Not so sure，perhaps just check NK markers
+  # NK markers below
+  CD16_NK = c("FCGR3A","FCER1G","KLRF1"),
+  CD56_NK = c("NCAM1","XCL1","CMC1")
+)
+
 # Marker hub --------
 #' Marker hub
 #'
@@ -42,12 +61,21 @@
 #'
 #' @format List with two elements: \code{$data}, \code{$source}.
 #' @export
+#' @examples
+#' devtools::load_all("/Users/leoarrow/project/mypackage/leo.sc")
+#' t_nk_marker <- leo.marker$t_nk_marker$data
 leo.marker <- list(
+  t_nk_marker = list(
+    data = .t_nk_marker,
+    name = "Leo curated T/NK cell markers",
+    note = "Some can refer to Azimuth (https://azimuth.hubmapconsortium.org/references/#Human%20-%20PBMC)"
+  ),
   tcell_genes = list(
     data = .tcell_genes,
     name = "Zhang2018",
     title = "Lineage tracking reveals dynamic relationships of T cells in colorectal cancer",
     source = "https://www.nature.com/articles/s41586-018-0694-x#Fig9",
-    doi = "https://doi.org/10.1038/s41586-018-0694-x"
+    doi = "https://doi.org/10.1038/s41586-018-0694-x",
+    note = "Canonical maybe a little bit old?"
   )
 )

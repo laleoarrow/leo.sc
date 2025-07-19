@@ -42,7 +42,7 @@ plot_score_signature_heatmap(
 heatmap obj.
 }
 \description{
-Plot heatmap of signature scores
+This function generates a heatmap of signature scores. You should do this after score_signature().
 }
 \examples{
 \dontrun{
