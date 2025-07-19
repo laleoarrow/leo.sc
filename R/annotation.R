@@ -68,10 +68,11 @@ format_markers_for_upload <- function(markers_tbl,
 #' @importFrom leo.basic leo_log
 #' @export
 sort_string_numeric_clusters <- function(seurat_obj, cluster_col) {
-  clust_vec <- as.character(seurat_obj[[cluster_col]])
-  new_levels <- as.character(sort(as.numeric(unique(clust_vec))))
-  leo.basic::leo_log("ℹ️ New ordered levels for '", cluster_col, "': ", paste(new_levels, collapse = ", "))
-  seurat_obj[[cluster_col]] <- factor(clust_vec, levels = new_levels)
+  clust_vec   <- as.character(seurat_obj@meta.data[[cluster_col]])
+  new_levels  <- as.character(sort(as.numeric(unique(clust_vec))))
+  leo.basic::leo_log("ℹ️ New ordered levels for '", cluster_col, "': ",
+                     paste(new_levels, collapse = ", "))
+  seurat_obj@meta.data[[cluster_col]] <- factor(clust_vec, levels = new_levels)
   return(seurat_obj)
 }
 
@@ -139,6 +140,7 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
 #' @param obj A Seurat object with `celltype_broad` and `orig.ident` metadata.
 #' @param assay Assay name containing raw counts (default "RNA").
 #' @param layer Layer name for raw counts (default "counts").
+#' @param downsample Number of cells to downsample per group (default 3000).
 #' @param min.cells Minimum cells per gene for filtering (default 10).
 #' @param min.genes Minimum genes per cell for filtering (default 10).
 #' @param anno_label Cell type annotation label (default "celltype_broad").
@@ -151,8 +153,15 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
 #' @importFrom ROGUE SE_fun SEplot CalculateRogue rogue rogue.boxplot
 #' @importFrom leo.basic leo_log
 #' @export
-calcROGUE <- function(obj, assay = "RNA", layer = "counts", min.cells = 10, min.genes = 10,
+calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
+                      min.cells = 10, min.genes = 10,
                       anno_label = "celltype_broad", sample_label = "orig.ident", ...) {
+  if (!is.null(downsample)) {
+    leo.basic::leo_log("Downsampling to", downsample, "cells per", anno_label, "group")
+    Idents(obj) <- obj[[anno_label]][,1]
+    obj <- subset(obj, downsample = downsample)
+  }
+
   matr.filter2 <- function(expr, min.cells, min.genes) {
     # This function enhances `matr.filter` in ROGUE
     if (!inherits(expr, "matrix") && !inherits(expr, "dgCMatrix")) {
@@ -240,3 +249,146 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
   rownames(res.tibble) <- unique(samples)
   return(res.tibble)
 }
+
+#' Score sc_obj with signature list
+#'
+#' @param sc_obj A Seurat object.
+#' @param signature_list list. A list of gene sets, where each element is a character vector of gene names.
+#' @param seed An integer seed for reproducibility. Default is 1.
+#'
+#' @returns A Seurat object with module scores added to the metadata.
+#' @export
+#' @importFrom Seurat AddModuleScore
+#' @importFrom leo.basic leo_log
+#' @examples
+#' \dontrun{
+#' sc_obj <- score_signature(sc_obj, signature_list))
+#' }
+score_signature <- function(sc_obj, signature_list, seed = 1) {
+  for (nm in names(signature_list)) {
+    leo.basic::leo_log("Calculating {nm}")
+    sc_obj <- AddModuleScore(sc_obj, features = list(signature_list[[nm]]),
+                             name = nm, ctrl = 100, seed = seed, search = FALSE)
+    # AddModuleScore gives "nm1" not what we expected---nm. So change it back to nm.
+    i <- grep(paste0("^", nm, "[0-9]+$"), colnames(sc_obj@meta.data))
+    colnames(sc_obj@meta.data)[i] <- nm
+  }
+  return(sc_obj)
+}
+
+#' Plot heatmap of signature scores
+#'
+#' @param sc_obj A Seurat object.
+#' @param signature_list list. A list of gene sets, where each element is a character vector of gene names.
+#' @param group A character string specifying the metadata column to group by. (e.g., group = "RNA_snn_res.0.6")
+#' @param group_prefix A character string to prefix the column names in the heatmap. Default is NULL.
+#' @param scale Whether to scale the matrix. Options are "none", "row", or "column". Default is "none".
+#' @param signature_cat Named vector. c("rowname1" = "category1", "rowname2" = "category2"). Provide to each row a category.
+#' @param signature_cat_col Named vector. c("category1" = "color1", "category2" = "color2"). Provide to each category a color.
+#' @param save_path Path to save the heatmap PDF (Only support pdf). Default is "./signature.pdf".
+#' @param width Width of the saved heatmap PDF. Default is 6.
+#' @param height Height of the saved heatmap PDF. Default is 6.
+#'
+#' @returns heatmap obj.
+#' @importFrom dplyr mutate group_by summarise across
+#' @importFrom tibble column_to_rownames
+#' @importFrom matrixStats rowSds colSds
+#' @importFrom grDevices adjustcolor hcl.colors
+#' @importFrom grid unit gpar
+#' @importFrom ComplexHeatmap Heatmap rowAnnotation Legend draw
+#' @importFrom circlize colorRamp2
+#' @export
+#' @examples
+#' \dontrun{
+#' signature_category <- c("Naïve"                        = "Differentiation",
+#' "Activation/Effector function" = "Differentiation",
+#' "Exhaustion"                   = "Differentiation",
+#' "TCR Signaling"                = "Function",
+#' "Cytotoxicity"                 = "Function",
+#' "Cytokine/Cytokine receptor"   = "Function",
+#' "Chemokine/Chemokine receptor" = "Function",
+#' "Senescence"                   = "Function",
+#' "Anergy"                       = "Function",
+#' "NFKB Signaling"               = "Function",
+#' "Stress response"              = "Function",
+#' "MAPK Signaling"               = "Function",
+#' "Adhesion"                     = "Function",
+#' "IFN Response"                 = "Function",
+#' "Oxidative phosphorylation"    = "Metabolism",
+#' "Glycolysis"                   = "Metabolism",
+#' "Fatty acid metabolism"        = "Metabolism",
+#' "Pro-apoptosis"                = "Apoptosis",
+#' "Anti-apoptosis"               = "Apoptosis")
+#' signature_category_color <- c("Differentiation" = "#E49446",
+#'                               "Function"        = "#4BA5DB",
+#'                               "Metabolism"      = "#815F43",
+#'                               "Apoptosis"       = "#B12F3A")
+#' plot_score_signature_heatmap(cd8, cd8_signature, group = "RNA_snn_res.0.6",
+#'                              group_prefix = "CD8_c", scale = "row",
+#'                              signature_cat = signature_category,
+#'                              signature_cat_col = signature_category_color,
+#'                              save_path = "./figure/sc/annotation/tnk/cd8/demo.signature.pdf",
+#'                              width = 6, height = 6)
+#'}
+plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_prefix = NULL,
+                                         scale = "none", signature_cat, signature_cat_col,
+                                         save_path = "./signature.pdf", width = 6, height = 6){
+  require(ComplexHeatmap); require(circlize)
+
+  mat <- sc_obj@meta.data[, names(signature_list)] %>%
+    mutate(cluster = sc_obj@meta.data[[group]]) %>%
+    group_by(cluster) %>%
+    summarise(across(everything(), mean), .groups = "drop") %>%
+    tibble::column_to_rownames("cluster") %>%
+    t()
+
+  if (!is.null(group_prefix)) colnames(mat) <- paste0(group_prefix, colnames(mat))
+  if ("row" %in% scale) { # adpated from pheatmap's scale method
+    if (any(is.na(mat))) {
+      mat = (mat - rowMeans(mat, na.rm = TRUE))/rowSds(mat, na.rm = TRUE)
+    }
+    else {
+      mat = t(scale(t(mat)))
+    }
+  }
+  else if ("column" %in% scale) {
+    if (any(is.na(mat))) {
+      mat = t((t(mat) - colMeans(mat, na.rm = TRUE))/colSds(mat, na.rm = TRUE))
+    }
+    else {
+      mat = scale(mat)
+    }
+  }
+
+  rowname_col <- signature_category[rownames(mat)]
+  rowname_colors <- grDevices::adjustcolor(cat_cols[rowname_col], alpha.f = .5)
+  names(rowname_colors) <- rownames(mat)
+
+  left_ha <- rowAnnotation(Category = anno_block(gp = gpar(fill = signature_category_color)),
+                           show_annotation_name = FALSE,
+                           width = unit(4, "mm"))
+
+  ht <- Heatmap(mat, name = "Signature\nscore",
+                col = circlize::colorRamp2(c(-1, 0, 1), c("#5DB3E6","white","#E7717D")),
+                border = "black",
+                rect_gp = gpar(col = "black", lwd = 1),
+                cluster_rows = FALSE, cluster_columns = TRUE,
+                left_annotation = left_ha,
+                row_split = factor(signature_category[rownames(mat)],
+                                   levels = names(signature_category_color)),
+                row_gap = unit(3, "pt"),
+                row_title_gp = gpar(fontsize = 0),
+                row_names_gp = gpar(col = "black", fontsize = 10, lwd = 0, lineheight = 0,
+                                    fill = rowname_colors),
+                row_names_side = "right", row_names_rot = 0,
+                column_names_rot= 90,
+                heatmap_legend_param = list(title = "Signature\nscore")
+  )
+  lgd_cat <- Legend(title = "Category", labels = names(cat_cols),
+                    legend_gp = gpar(fill = cat_cols, col = NA), ncol = 1)
+  pdf(save_path, width = width, height = height)
+  draw(ht, merge_legend = TRUE, annotation_legend_list = list(lgd_cat))
+  dev.off()
+}
+
+

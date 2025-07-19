@@ -121,7 +121,10 @@ seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c
 #' @importFrom patchwork wrap_plots plot_annotation
 #' @importFrom cowplot plot_grid
 #' @export
-seurat_basic_qc <- function(seurat_obj, out_path = NULL, save_plot = T, verbose = TRUE){
+seurat_basic_qc <- function(seurat_obj,
+                            nFeature_RNA_low = 200, nFeature_RNA_high = 7500,
+                            nCount_RNA_high = 10000, percent_mt_high = 10, percent_HB_high = 1,
+                            out_path = NULL, save_plot = T, verbose = TRUE){
   if (save_plot & is.null(out_path)) {stop("output path for qc plot is required")}
   leo.basic::leo_log("Performing basic QC on the Seurat object", verbose = verbose)
 
@@ -142,8 +145,8 @@ seurat_basic_qc <- function(seurat_obj, out_path = NULL, save_plot = T, verbose 
   }
 
   n1 <- ncol(seurat_obj)
-  seurat_obj <- subset(seurat_obj, subset = nFeature_RNA > 200 &  nFeature_RNA < 7500 &
-                                            nCount_RNA < 10000 & percent.mt < 10 & percent.HB < 1)
+  seurat_obj <- subset(seurat_obj, subset = nFeature_RNA > nFeature_RNA_low &  nFeature_RNA < nFeature_RNA_high &
+                                            nCount_RNA < nCount_RNA_high & percent.mt < percent_mt_high & percent.HB < percent_HB_high)
   n2 <- ncol(seurat_obj); filtered_cells <- n1 - n2
   leo.basic::leo_log("{filtered_cells} cells were filtered", level = "success", verbose = verbose)
 
@@ -371,4 +374,15 @@ seurat_basic_info <- function(seurat_obj, assay = NULL, slot = "counts") {
     total_cells        = total_cells,
     avg_genes_per_cell = avg_genes_per_cell
   )
+}
+
+# decontX
+# todo
+contanmination_removal <- function(seurat_obj, assay = "RNA", slot = "counts",
+                                   decontX_path = NULL, verbose = TRUE) {
+  # Placeholder for decontX implementation
+  # This function should call the decontX executable with appropriate parameters
+  # and return a Seurat object with decontaminated data.
+
+  return(seurat_obj) # Return the modified Seurat object
 }

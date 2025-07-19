@@ -171,13 +171,13 @@ plot_alluvial_sc <- function(obj,
 #' p <- plot_gw_density(all, features = c("CD8A", "CD8B"), ncol = 2)
 #' print(p)
 #' @export
-plot_gw_density <- function(data, features, ncol = 2) {
+plot_gw_density <- function(data, features,  reduction = "umap.harmony", ncol = 2) {
   missing <- setdiff(features, rownames(data))
   if (length(missing)) leo_log("Features not found: ", paste(missing, collapse = ", "), level = "danger")
   plots <- lapply(features, function(gene) {
     Nebulosa::plot_density(
       object    = data,
-      reduction = "umap.harmony",
+      reduction = reduction,
       features  = gene,
       method    = "wkde",
       pal       = "magma",

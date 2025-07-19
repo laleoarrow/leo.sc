@@ -4,7 +4,7 @@
 \alias{plot_gw_density}
 \title{Plot gene-weighted density}
 \usage{
-plot_gw_density(data, features, ncol = 2)
+plot_gw_density(data, features, reduction = "umap.harmony", ncol = 2)
 }
 \arguments{
 \item{data}{A Seurat object with a "harmony" reduction and UMAP computed on it.}

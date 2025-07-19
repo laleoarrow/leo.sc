@@ -4,7 +4,17 @@
 \alias{seurat_basic_qc}
 \title{Seurat basic QC}
 \usage{
-seurat_basic_qc(seurat_obj, out_path = NULL, save_plot = T, verbose = TRUE)
+seurat_basic_qc(
+  seurat_obj,
+  nFeature_RNA_low = 200,
+  nFeature_RNA_high = 7500,
+  nCount_RNA_high = 10000,
+  percent_mt_high = 10,
+  percent_HB_high = 1,
+  out_path = NULL,
+  save_plot = T,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{seurat_obj}{A Seurat object.}

@@ -8,6 +8,7 @@ calcROGUE(
   obj,
   assay = "RNA",
   layer = "counts",
+  downsample = 3000,
   min.cells = 10,
   min.genes = 10,
   anno_label = "celltype_broad",
@@ -21,6 +22,8 @@ calcROGUE(
 \item{assay}{Assay name containing raw counts (default "RNA").}
 
 \item{layer}{Layer name for raw counts (default "counts").}
+
+\item{downsample}{Number of cells to downsample per group (default 3000).}
 
 \item{min.cells}{Minimum cells per gene for filtering (default 10).}
 
