@@ -110,8 +110,13 @@ seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c
 #' and optionally plots QC metrics before and after filtering.
 #'
 #' @param seurat_obj A Seurat object.
-#' @param out_path Character. Directory to save QC plots. Required.
-#' @param plot Logical. Whether to generate QC plots. Default: TRUE.
+#' @param out_path Character. Directory to save QC plots. Required if save_plot is `T`.
+#' @param nFeature_RNA_low Lower boundary for number of features per cell. Default: 200.
+#' @param nFeature_RNA_high Upper boundary for number of features per cell. Default: 7500.
+#' @param nCount_RNA_high Upper boundary for number of counts per cell. Default: 10000.
+#' @param percent_mt_high Upper boundary for mitochondrial percentage. Default: 10.
+#' @param percent_HB_high Upper boundary for hemoglobin percentage. Default: 1.
+#' @param save_plot Logical. Whether to save QC plots. Default: FALSE.
 #' @param verbose Logical. Whether to print `leo.log` messages. Default: TRUE.
 #'
 #' @return A filtered Seurat object.
@@ -124,8 +129,8 @@ seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c
 seurat_basic_qc <- function(seurat_obj,
                             nFeature_RNA_low = 200, nFeature_RNA_high = 7500,
                             nCount_RNA_high = 10000, percent_mt_high = 10, percent_HB_high = 1,
-                            out_path = NULL, save_plot = T, verbose = TRUE){
-  if (save_plot & is.null(out_path)) {stop("output path for qc plot is required")}
+                            out_path = NULL, save_plot = FALSE, verbose = TRUE){
+  if (save_plot & is.null(out_path)) stop("output path is required when save_plot is TRUE")
   leo.basic::leo_log("Performing basic QC on the Seurat object", verbose = verbose)
 
   seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
@@ -133,20 +138,18 @@ seurat_basic_qc <- function(seurat_obj,
   hb_matches <- match(hb_genes, rownames(seurat_obj@assays$RNA))
   hb_genes_present <- hb_genes[!is.na(hb_matches)]
   seurat_obj[["percent.HB"]] <- PercentageFeatureSet(seurat_obj, features = hb_genes_present)
+
   if (save_plot) {
     p_before <- plot_qc(seurat_obj, out_path, prefix = "before_", save_plot = F) +
-      plot_annotation(
-        title = "Before QC",
-        theme = theme(
-          plot.title = element_text(
-            color = "blue", face  = "bold",
-            size  = 18, hjust = 0.5))
-        )
+      plot_annotation(title = "Before QC", theme = theme(plot.title = element_text(color = "blue", face  = "bold",
+                                                                                   size  = 18, hjust = 0.5)))
   }
 
   n1 <- ncol(seurat_obj)
-  seurat_obj <- subset(seurat_obj, subset = nFeature_RNA > nFeature_RNA_low &  nFeature_RNA < nFeature_RNA_high &
-                                            nCount_RNA < nCount_RNA_high & percent.mt < percent_mt_high & percent.HB < percent_HB_high)
+  seurat_obj <- subset(seurat_obj,
+                       subset = nFeature_RNA > nFeature_RNA_low & nFeature_RNA < nFeature_RNA_high &
+                         nCount_RNA < nCount_RNA_high &
+                         percent.mt < percent_mt_high & percent.HB < percent_HB_high)
   n2 <- ncol(seurat_obj); filtered_cells <- n1 - n2
   leo.basic::leo_log("{filtered_cells} cells were filtered", level = "success", verbose = verbose)
 
@@ -385,4 +388,52 @@ contanmination_removal <- function(seurat_obj, assay = "RNA", slot = "counts",
   # and return a Seurat object with decontaminated data.
 
   return(seurat_obj) # Return the modified Seurat object
+}
+
+#' Remove unwanted HVGs
+#'
+#' Filter the current \code{VariableFeatures()} of a Seurat object and drop
+#' genes matching user-defined regular-expression patterns. Default setting (mitochondria / ribosome / TCR / hemoglobin).
+#'
+#' @param srt          A Seurat object with HVGs already defined
+#'                     (e.g. after \code{FindVariableFeatures()}).
+#' @param pattern_list Named list of regex patterns.  **Default**
+#' \itemize{
+#'   \item \code{mitochondrial_genes = "^MT-"}
+#'   \item \code{ribosomal_genes     = "^(RPL|RPS)"}
+#'   \item \code{tcr_genes           = "^TR[ABDG]"}
+#'   \item \code{hemoglobin_genes    = "^HB[AB]"}
+#' }
+#'
+#' @return Seurat object with filtered \code{VariableFeatures()}.
+#'         A concise summary is printed.
+#'
+#' @examples
+#' \dontrun{
+#' srt <- NormalizeData(srt) |>
+#'        FindVariableFeatures(nfeatures = 2000) |>
+#'        remove_unwant_hvg()
+#' }
+#' @importFrom SeuratObject VariableFeatures
+#' @export
+remove_unwant_hvg <- function(srt, pattern_list = list(mitochondrial_genes = "^MT-",
+                                                       ribosomal_genes     = "^(RPL|RPS)",
+                                                       tcr_genes           = "^TR[ABDG]",
+                                                       hemoglobin_genes    = "^HB[AB]") ) {
+  hv <- VariableFeatures(srt)
+  if (length(hv) == 0L) {
+    warning("No VariableFeatures() found; object returned unchanged.")
+    return(srt)
+  }
+
+  pat <- paste(unlist(pattern_list), collapse = "|")
+  rm_idx <- grepl(pat, hv, ignore.case = FALSE)
+  VariableFeatures(srt) <- hv[!rm_idx]
+
+  n_tot <- length(hv)
+  n_rm  <- sum(rm_idx)
+  message(sprintf("remove_unwant_hvg(): removed %d / %d HVGs (%.1f%%) — kept %d (%.1f%%)",
+                   n_rm, n_tot, 100 * n_rm / n_tot,
+                   n_tot - n_rm, 100 * (n_tot - n_rm) / n_tot))
+  return(srt)
 }

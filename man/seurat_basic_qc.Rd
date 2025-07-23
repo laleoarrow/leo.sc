@@ -12,18 +12,28 @@ seurat_basic_qc(
   percent_mt_high = 10,
   percent_HB_high = 1,
   out_path = NULL,
-  save_plot = T,
+  save_plot = FALSE,
   verbose = TRUE
 )
 }
 \arguments{
 \item{seurat_obj}{A Seurat object.}
 
-\item{out_path}{Character. Directory to save QC plots. Required.}
+\item{nFeature_RNA_low}{Lower boundary for number of features per cell. Default: 200.}
+
+\item{nFeature_RNA_high}{Upper boundary for number of features per cell. Default: 7500.}
+
+\item{nCount_RNA_high}{Upper boundary for number of counts per cell. Default: 10000.}
+
+\item{percent_mt_high}{Upper boundary for mitochondrial percentage. Default: 10.}
+
+\item{percent_HB_high}{Upper boundary for hemoglobin percentage. Default: 1.}
+
+\item{out_path}{Character. Directory to save QC plots. Required if save_plot is \code{T}.}
+
+\item{save_plot}{Logical. Whether to save QC plots. Default: FALSE.}
 
 \item{verbose}{Logical. Whether to print \code{leo.log} messages. Default: TRUE.}
-
-\item{plot}{Logical. Whether to generate QC plots. Default: TRUE.}
 }
 \value{
 A filtered Seurat object.

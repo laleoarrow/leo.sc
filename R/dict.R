@@ -1,7 +1,7 @@
 #' Canonical gene markers for T-cell subtypes (Zhang 2018)
 #' @keywords internal
 .tcell_genes <- list(
-  # CD 8 T cells
+  # CD8 T cells
   CD8_Tn          = c("CCR7","LEF1","SELL","TCF7","CD27","CD28","S1PR1"),
   CD8_Tcm         = c("CCR7","SELL","IL7R","CD27","CD28","PRF1","GZMA","CCL5",
                       "GPR183","S1PR1"),
@@ -15,7 +15,7 @@
   CD8_TEX         = c("HAVCR2","CXCL13","PDCD1","LAYN","TOX","IFNG","GZMB",
                       "MIR155HG","TNFRSF9","ITGAE"),
   MAIT            = c("SLC4A10","KLRB1","ZBTB16","NCR3","RORC","RORA"),
-  # CD 4 T cells
+  # CD4 T cells
   CD4_Tn          = c("CCR7","LEF1","SELL","TCF7","CD27","CD28","S1PR1"),
   CD4_Blood_Tcm   = c("CCR7","SELL","PTGER2","ICAM2","ANXA1","ANXA2","S1PR1"),
   CD4_TemRA_TEFF  = c("KLRG1","CX3CR1","NKG7","PRF1","GNLY","GZMH","TBX21",
@@ -38,12 +38,13 @@
 .t_nk_marker <- list(
   `T` = c("CD3D","CD3E"), # CD3+ Complex
   CD4 = c("CD4","CD40LG"), # CD4+; Helper T cells
-  CD8 = c("CD8A", "CD8B"), # CD8+; CD8A~α; CD8B~β
+  CD8 = c("CD8A","CD8B"), # CD8+; CD8A~α; CD8B~β
   Tn = c("CCR7","SELL","LRRN3"), # CCR7-Naive
   Tem = c("GZMK","CCL5"),
-  Tcm = c("ANXA1","CD27","CD28"),
+  Tcm = c("CD27","CD28"),
+  Temra = c("FGFBP2", "KLRG1"), # CD8+CD45RA-CCR7-
   Treg = c("FOXP3"), # CD4+CD25+FOXP3+; Regulatory T cells
-  CTL = c("GZMB"), # Cytotoxic T cells
+  CTL = c("GZMB","PRF1"), # Cytotoxic T cells
   # DPT = c("TYROBP"), # Not so sure
   DNT = c("TRDV2"), # `CD4-8-` TRDV2 can also be gdT's marker
   gdT =c("TRGV9"), # Integrating single-cell RNA and T cell/B cell receptor sequencing with mass cytometry reveals dynamic trajectories of human peripheral immune cells from birth to old age
@@ -77,5 +78,10 @@ leo.marker <- list(
     source = "https://www.nature.com/articles/s41586-018-0694-x#Fig9",
     doi = "https://doi.org/10.1038/s41586-018-0694-x",
     note = "Canonical maybe a little bit old?"
+  ),
+  leo.note = list(
+    name = "sc note for Leo.sc marker hub. Come check this when you have no clues.",
+    msg1 = "IL7R can be a good marker expressed in Tn, Tcm and Tem. But it is mostly in Tcm in VKH2024 case as it is essential to T cell survival.",
+    note = "You can use `leo.marker$t_nk_marker$data` to access the T/NK cell markers."
   )
 )

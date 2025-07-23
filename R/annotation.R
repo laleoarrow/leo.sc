@@ -54,6 +54,8 @@ format_markers_for_upload <- function(markers_tbl,
 
   leo.basic::leo_log("Website for uploading: http://xteam.xbio.top/ACT/index.jsp",
                      level = "info", verbose = verbose)
+  leo.basic::leo_log("Backup website: http://biocc.hrbmu.edu.cn/ACT/index.jsp",
+                     level = "info", verbose = verbose)
   leo.basic::leo_log("Marker list formatted ✔", level = "success", verbose = verbose)
   return(txt)
 }
@@ -272,8 +274,8 @@ score_signature <- function(sc_obj, signature_list, seed = 1) {
     sc_obj <- AddModuleScore(sc_obj, features = list(signature_list[[nm]]),
                              name = nm, ctrl = 100, seed = seed, search = FALSE)
     # AddModuleScore gives "nm1" not what we expected---nm. So change it back to nm.
-    i <- grep(paste0("^", nm, "[0-9]+$"), colnames(sc_obj@meta.data))
-    colnames(sc_obj@meta.data)[i] <- nm
+    idx <- which(startsWith(colnames(sc_obj@meta.data), nm) & grepl("\\d+$", colnames(sc_obj@meta.data)))
+    colnames(sc_obj@meta.data)[idx] <- nm
   }
   return(sc_obj)
 }
@@ -365,7 +367,7 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
   }
 
   rowname_col <- signature_category[rownames(mat)]
-  rowname_colors <- grDevices::adjustcolor(cat_cols[rowname_col], alpha.f = .5)
+  rowname_colors <- grDevices::adjustcolor(signature_category_color[rowname_col], alpha.f = .5)
   names(rowname_colors) <- rownames(mat)
 
   left_ha <- rowAnnotation(Category = anno_block(gp = gpar(fill = signature_category_color)),
@@ -388,8 +390,8 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
                 column_names_rot= 90,
                 heatmap_legend_param = list(title = "Signature\nscore")
   )
-  lgd_cat <- Legend(title = "Category", labels = names(cat_cols),
-                    legend_gp = gpar(fill = cat_cols, col = NA), ncol = 1)
+  lgd_cat <- Legend(title = "Category", labels = names(signature_cat_col),
+                    legend_gp = gpar(fill = signature_cat_col, col = NA), ncol = 1)
   pdf(save_path, width = width, height = height)
   draw(ht, merge_legend = TRUE, annotation_legend_list = list(lgd_cat))
   dev.off()
@@ -416,28 +418,36 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
 #' \dontrun{
 #' tops <- locate_most_different_g_in_2_group(pbmc, "seurat_clusters", "4","5")
 #' }
-locate_most_different_g_in_2_group <- function(sc_obj, ident1, ident2, assay = "RNA",
+locate_most_different_g_in_2_group <- function(sc_obj, ident.1, ident.2, assay = "RNA",
                                                test.use = "wilcox", pval.adj = 0.05,
-                                               logfc = 0.5, min.pct1 = 0.5, max.pct2 = 0.2
+                                               logfc = 0.5, min.pct1 = 0.5, max.pct2 = 0.2,
                                                return_top_n = 1) {
-  DefaultAssay(sc_obj)<-assay
-  deg <- FindMarkers(sc_obj,ident.1=ident1,ident.2=ident2,
-                     assay=assay,test.use=test.use,
-                     logfc.threshold=logfc,min.pct=min.pct)
-  # marker for ident1
-  m1 <- deg[ deg$p_val_adj < pval.adj & deg$avg_log2FC > logfc &
-               deg$pct.1 >= min.pct & deg$pct.2 <= max.pct, ]
-  # marker for ident2
-  m2 <- deg[ deg$p_val_adj < pval.adj & deg$avg_log2FC < -logfc &
-               deg$pct.2 >= min.pct & deg$pct.1 <= max.pct, ]
+  DefaultAssay(sc_obj) <- assay
+  deg <- FindMarkers(sc_obj, ident.1 = ident.1, ident.2 = ident.2,
+                     assay = assay, test.use = test.use,
+                     logfc.threshold = logfc, min.pct = min.pct1)
+  # marker for ident.1
+  m1 <- deg[ deg$p_val_adj < pval.adj & abs(deg$avg_log2FC) > logfc &
+               deg$pct.1 >= min.pct1 & deg$pct.2 <= max.pct2, ]
+  leo.basic::leo_log("Found ", nrow(m1), " markers for ident.1: ", ident.1)
+  # marker for ident.2
+  m2 <- deg[ deg$p_val_adj < pval.adj & abs(deg$avg_log2FC) > logfc &
+               deg$pct.2 >= min.pct1 & deg$pct.1 <= max.pct2, ]
+  leo.basic::leo_log("Found ", nrow(m2), " markers for ident.2: ", ident.2)
+
+  if (nrow(m1) == 0 && nrow(m2) == 0) {
+    leo.basic::leo_log("No markers found for either ident.1 or ident.2.", level = "warning")
+    leo.basic::leo_log("Returning the DEG for you to mannually check", level = "warning")
+    return(deg)
+  }
 
   if (return_top_n == 1) {
     top1 <- if(nrow(m1)) rownames(m1)[which.max(m1$avg_log2FC)] else NA
     top2 <- if(nrow(m2)) rownames(m2)[which.min(m2$avg_log2FC)] else NA
-    return(list(ident1 = top1, ident2 = top2))
+    return(list(ident.1 = top1, ident.2 = top2))
   }
 
   m1 <- m1 %>% arrange(desc(avg_log2FC)) %>% slice_head(n = return_top_n)
   m2 <- m2 %>% arrange(avg_log2FC) %>% slice_head(n = return_top_n)
-  return(list(ident1 = m1, ident2 = m2))
+  return(list(ident.1 = m1, ident.2 = m2))
 }
