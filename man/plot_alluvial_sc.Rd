@@ -4,7 +4,13 @@
 \alias{plot_alluvial_sc}
 \title{Alluvial plot from a Seurat object}
 \usage{
-plot_alluvial_sc(obj, group_col = "Group", cluster_col = "Cluster", ...)
+plot_alluvial_sc(
+  obj,
+  group_col = "Group",
+  cluster_col = "Cluster",
+  return = "plot",
+  ...
+)
 }
 \arguments{
 \item{obj}{A \pkg{Seurat} object.}
@@ -12,6 +18,8 @@ plot_alluvial_sc(obj, group_col = "Group", cluster_col = "Cluster", ...)
 \item{group_col}{Metadata field mapped to the x-axis (e.g. sample, time).}
 
 \item{cluster_col}{Metadata field defining strata (e.g. cell type / ident).}
+
+\item{return}{return a plot (set "plot") or a list with plot and data (set "both").}
 
 \item{...}{Additional arguments forwarded to \code{plot_alluvial()}.}
 }

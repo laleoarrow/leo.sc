@@ -18,5 +18,5 @@ A vector of column names that match the pattern
 get colnames of srt obj meta data name
 }
 \examples{
-tnk \%>\% get_meta_colnames()
+srt \%>\% get_meta_colnames()
 }

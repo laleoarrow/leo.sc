@@ -109,6 +109,7 @@ plot_alluvial <- function(df, x_col = "Group", weight_col = "Percentage",
 #' @param group_col   Metadata field mapped to the x-axis (e.g. sample, time).
 #' @param cluster_col Metadata field defining strata (e.g. cell type / ident).
 #' @param ...         Additional arguments forwarded to \code{plot_alluvial()}.
+#' @param return      return a plot (set "plot") or a list with plot and data (set "both").
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -127,25 +128,23 @@ plot_alluvial <- function(df, x_col = "Group", weight_col = "Percentage",
 #'   palette = c("#8DD3C7","#FFFFB3","#BEBADA","#FB8072",
 #'               "#80B1D3","#FDB462","#B3DE69"))
 #' @export
-plot_alluvial_sc <- function(obj,
-                             group_col   = "Group",
-                             cluster_col = "Cluster",
-                             ...) {
+plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
+                             return = "plot", ...) {
 
   stopifnot(inherits(obj, "Seurat"))
 
-  meta <- obj[[]] |>
+  dat <- meta <- obj[[]] |>
     dplyr::count(.data[[group_col]], .data[[cluster_col]], name = "n") |>
     dplyr::group_by(.data[[group_col]]) |>
     dplyr::mutate(Percentage = 100 * n / sum(n), .after = n) |>
     dplyr::ungroup()
 
-  plot_alluvial(
-    meta,
-    x_col       = group_col,
-    weight_col  = "Percentage",
-    stratum_col = cluster_col,
-    ...)
+  p <- plot_alluvial(meta, x_col = group_col,
+                     weight_col  = "Percentage",
+                     stratum_col = cluster_col, ...)
+
+  if (return == "plot") return(p)
+  return(list(plot = p, data = dat))
 }
 
 #' Plot gene-weighted density

@@ -132,6 +132,7 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
     dplyr::pull(cluster)
   leo.basic::leo_log("✅ Kept clusters (", length(keep_clusters), "): ", paste(keep_clusters, collapse = ", "))
   leo.basic::leo_log("❌ Dropped clusters (", length(drop_clusters), "): ", paste(drop_clusters, collapse = ", "))
+  leo.basic::leo_log("⬇️ The number of cell in each clusters️"); print(sort(table(seurat_obj[[cluster_col]]), decreasing = T))
   return(keep_clusters)
 }
 
@@ -197,7 +198,7 @@ calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
                   labels = obj@meta.data[[anno_label]],
                   samples = obj@meta.data[[sample_label]],
                   ...)
-  leo.basic::leo_log("Done! `rogue.boxplot(res)` to visualize.", level = "success")
+  leo.basic::leo_log("Done! `rogue.boxplot(rogue.res)` to visualize.", level = "success")
   return(res)
 }
 
@@ -247,6 +248,8 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
                                mc.cores = mc.cores)
   res.tibble <- Reduce(rbind, res) %>% as.matrix() %>% t() %>%
     as.data.frame()
+  # print(length(clusters))
+  # print(length(unique(samples)))
   colnames(res.tibble) <- clusters
   rownames(res.tibble) <- unique(samples)
   return(res.tibble)
@@ -271,11 +274,19 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
 score_signature <- function(sc_obj, signature_list, seed = 1) {
   for (nm in names(signature_list)) {
     leo.basic::leo_log("Calculating {nm}")
+    old_names <- colnames(sc_obj@meta.data)
     sc_obj <- AddModuleScore(sc_obj, features = list(signature_list[[nm]]),
                              name = nm, ctrl = 100, seed = seed, search = FALSE)
     # AddModuleScore gives "nm1" not what we expected---nm. So change it back to nm.
-    idx <- which(startsWith(colnames(sc_obj@meta.data), nm) & grepl("\\d+$", colnames(sc_obj@meta.data)))
-    colnames(sc_obj@meta.data)[idx] <- nm
+    new_names <- setdiff(colnames(sc_obj@meta.data), old_names)
+    if (length(new_names) != 1) {
+      leo.basic::leo_log("Clear old calculated signature scores for {nm} before re-calculating.", level = "warning")
+      leo.basic::leo_log("Use: sc_obj@meta.data = sc_obj@meta.data[,-c(xxx)]", level = "warning")
+      stop()
+    }
+
+    colnames(sc_obj@meta.data)[match(new_names, colnames(sc_obj@meta.data))] <- nm
+    colnames(sc_obj@meta.data)[match(old_names, colnames(sc_obj@meta.data))] <- old_names
   }
   return(sc_obj)
 }
@@ -337,7 +348,7 @@ score_signature <- function(sc_obj, signature_list, seed = 1) {
 #'                              width = 6, height = 6)
 #'}
 plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_prefix = NULL,
-                                         scale = "none", signature_cat, signature_cat_col,
+                                         scale = "none", signature_cat, signature_cat_col, heatmap_title = NULL,
                                          save_path = "./signature.pdf", width = 6, height = 6){
   require(ComplexHeatmap); require(circlize)
 
@@ -393,7 +404,13 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
   lgd_cat <- Legend(title = "Category", labels = names(signature_cat_col),
                     legend_gp = gpar(fill = signature_cat_col, col = NA), ncol = 1)
   pdf(save_path, width = width, height = height)
-  draw(ht, merge_legend = TRUE, annotation_legend_list = list(lgd_cat))
+  draw(ht, padding = unit(c(6, 4, 4, 4), "mm"), merge_legend = TRUE, annotation_legend_list = list(lgd_cat))
+  if (!is.null(heatmap_title)) { grid.text(heatmap_title,
+                                           x = unit(0, "npc") + unit(3, "mm"),
+                                           y = unit(1, "npc") - unit(2, "mm"),
+                                           just = c("left", "top"),
+                                           gp = gpar(fontsize = 14, fontface = "bold"))
+    }
   dev.off()
 }
 
@@ -450,4 +467,18 @@ locate_most_different_g_in_2_group <- function(sc_obj, ident.1, ident.2, assay =
   m1 <- m1 %>% arrange(desc(avg_log2FC)) %>% slice_head(n = return_top_n)
   m2 <- m2 %>% arrange(avg_log2FC) %>% slice_head(n = return_top_n)
   return(list(ident.1 = m1, ident.2 = m2))
+}
+
+#' Give me marker!
+#'
+#' This function gives the most distinguishing marker for a cluster
+#'
+#' @param markers A data frame or tibble containing marker genes with columns `cluster`, `pct.1`, and `pct.2`.
+#' @param cluster_of_interest The cluster number for which to find the most distinguishing marker. Default is 1.
+#'
+#' @returns The most distinguishing marker for the specified cluster.
+#' @export
+gimme_marker <- function(markers, cluster_of_interest = 1) {
+  tmp <- markers %>% filter(cluster == cluster_of_interest & pct.1>0.5 & pct.2<0.5) %>% arrange(pct.2 - pct.1) %>% head()
+  return(tmp)
 }

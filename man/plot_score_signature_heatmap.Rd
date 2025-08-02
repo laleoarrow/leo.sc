@@ -12,6 +12,7 @@ plot_score_signature_heatmap(
   scale = "none",
   signature_cat,
   signature_cat_col,
+  heatmap_title = NULL,
   save_path = "./signature.pdf",
   width = 6,
   height = 6
