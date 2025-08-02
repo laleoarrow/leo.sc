@@ -4,14 +4,36 @@
 \alias{plot_gw_density}
 \title{Plot gene-weighted density}
 \usage{
-plot_gw_density(data, features, reduction = "umap.harmony", ncol = 2)
+plot_gw_density(
+  data,
+  features,
+  reduction = "umap.harmony",
+  size = 0.2,
+  pal = "magma",
+  ncol = 2,
+  joint = FALSE,
+  combine = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{A Seurat object with a "harmony" reduction and UMAP computed on it.}
 
 \item{features}{Character vector of feature names to plot.}
 
+\item{reduction}{Name of the reduction to use for plotting (default "umap.harmony").}
+
+\item{size}{Size of the geom to be plotted (e.g. point size)}
+
+\item{pal}{Choose from Nebulosa's palettes, e.g. "magma", "inferno", "plasma", "viridis", "cividis".}
+
 \item{ncol}{Number of columns in the output layout (default 2).}
+
+\item{joint}{Return joint density plot? By default FALSE}
+
+\item{combine}{Passed to \code{Nebulosa::plot_density()}.}
+
+\item{...}{Additional arguments passed to \code{Nebulosa::plot_density()}.}
 }
 \value{
 A patchwork object arranging density plots in a grid.
@@ -25,7 +47,9 @@ based on \pkg{Nebulosa}.
 library(Seurat)
 library(Nebulosa)
 library(patchwork)
+data <- SeuratObject::pbmc_small
 # Plot density for CD8A and CD8B in two columns
-p <- plot_gw_density(all, features = c("CD8A", "CD8B"), ncol = 2)
-print(p)
+plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", ncol = 2)
+# plot joint density for CD3D and CD3E
+plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", joint = T, combine = F)
 }

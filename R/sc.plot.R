@@ -152,41 +152,65 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 #' Quickly visualize expression gene-weighted density of one or more features
 #' based on \pkg{Nebulosa}.
 #'
-#' @param data     A Seurat object with a "harmony" reduction and UMAP computed on it.
+#' @param data A Seurat object with a "harmony" reduction and UMAP computed on it.
 #' @param features Character vector of feature names to plot.
-#' @param ncol     Number of columns in the output layout (default 2).
+#' @param ncol Number of columns in the output layout (default 2).
+#' @param reduction Name of the reduction to use for plotting (default "umap.harmony").
+#' @param joint Return joint density plot? By default FALSE
+#' @param size Size of the geom to be plotted (e.g. point size)
+#' @param pal Choose from Nebulosa's palettes, e.g. "magma", "inferno", "plasma", "viridis", "cividis".
+#' @param combine Passed to \code{Nebulosa::plot_density()}.
+#' @param ... Additional arguments passed to \code{Nebulosa::plot_density()}.
 #'
 #' @return A patchwork object arranging density plots in a grid.
 #'
 #' @importFrom Nebulosa plot_density
 #' @importFrom ggplot2 coord_fixed theme_void
 #' @importFrom patchwork wrap_plots
+#' @importFrom leo.basic leo_log
 #' @examples
 #' # Assuming 'all' is a Seurat object with harmony UMAP already run
 #' library(Seurat)
 #' library(Nebulosa)
 #' library(patchwork)
+#' data <- SeuratObject::pbmc_small
 #' # Plot density for CD8A and CD8B in two columns
-#' p <- plot_gw_density(all, features = c("CD8A", "CD8B"), ncol = 2)
-#' print(p)
+#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", ncol = 2)
+#' # plot joint density for CD3D and CD3E
+#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", joint = T, combine = F)
 #' @export
-plot_gw_density <- function(data, features,  reduction = "umap.harmony", ncol = 2) {
+plot_gw_density <- function(data, features, reduction = "umap.harmony",
+                            size = 0.2, pal = "magma", ncol = 2,
+                            joint = FALSE, combine = TRUE, ...) {
   missing <- setdiff(features, rownames(data))
   if (length(missing)) leo_log("Features not found: ", paste(missing, collapse = ", "), level = "danger")
-  plots <- lapply(features, function(gene) {
-    Nebulosa::plot_density(
-      object    = data,
-      reduction = reduction,
-      features  = gene,
-      method    = "wkde",
-      pal       = "magma",
-      size      = 0.2,
-      raster    = TRUE
-    ) +
-      ggplot2::coord_fixed() +
-      ggplot2::theme_void()
-  })
-  patchwork::wrap_plots(plots, ncol = ncol)
+  if (!joint) {
+    plots <- lapply(features, function(gene) {
+      Nebulosa::plot_density(data,
+                             features  = gene,
+                             reduction = reduction,
+                             method    = "wkde",
+                             pal       = pal,
+                             size      = size,
+                             raster    = TRUE) +
+        ggplot2::coord_fixed() +
+        ggplot2::theme_void()
+    })
+    return(patchwork::wrap_plots(plots, ncol = ncol))
+  } else {
+    leo.basic::leo_log("Plot joint density for {length(features)} features.")
+    x <- Nebulosa::plot_density(data,
+                                features  = features,
+                                reduction = reduction,
+                                joint     = TRUE,
+                                method    = "wkde",
+                                pal       = pal,
+                                size      = size,
+                                raster    = TRUE,
+                                combine   = F)
+    x <- lapply(x, function(y) y + ggplot2::coord_fixed() + ggplot2::theme_void())
+    return(x)
+  }
 }
 
 #' Plot Highlight a cluster on a dimensional reduction
