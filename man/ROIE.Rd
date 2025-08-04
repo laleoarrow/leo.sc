@@ -10,7 +10,7 @@ ROIE(crosstab)
 \item{crosstab}{the contingency table of given distribution}
 }
 \value{
-A matrix of Ro/e values
+matrix of Ro/e values
 }
 \description{
 Calculate the Ro/e value from the given crosstab

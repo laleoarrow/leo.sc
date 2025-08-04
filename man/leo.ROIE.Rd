@@ -23,7 +23,7 @@ leo.ROIE(
 )
 }
 \arguments{
-\item{srt}{Seurat object}
+\item{srt}{seurat object}
 
 \item{filter_col}{column used to subset (optional)}
 
@@ -47,8 +47,7 @@ leo.ROIE(
 
 \item{heatmap_anno}{\code{"num"}, \code{"+++"}, or \code{"none"}}
 
-\item{sym_break}{numeric breakpoints; \strong{only two presets supported}
-supported:** \code{c(-Inf,.1,1,2,3,Inf)} or \code{c(-Inf,0,.2,.8,1,Inf)}.}
+\item{sym_break}{numeric breakpoints; \strong{only two presets supported} --> \code{c(-Inf,.1,1,2,3,Inf)} or \code{c(-Inf,0,.2,.8,1,Inf)}}
 
 \item{...}{passed to \code{ComplexHeatmap::Heatmap()}}
 }

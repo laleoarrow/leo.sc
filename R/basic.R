@@ -437,3 +437,20 @@ remove_unwant_hvg <- function(srt, pattern_list = list(mitochondrial_genes = "^M
                    n_tot - n_rm, 100 * (n_tot - n_rm) / n_tot))
   return(srt)
 }
+
+
+#' Subset srt obj easily
+#'
+#' @param srt Seurat object
+#' @param subset_col Character. Column name in `meta.data` to subset on.
+#' @param subset_value Character vector. Values to retain in `subset_col`.
+#'
+#' @returns A subsetted Seurat object
+#' @export
+subset_srt <- function(srt, subset_col, subset_value) {
+  subset_vec <- srt@meta.data[[subset_col]]
+  if (is.null(subset_vec)) stop("Column not found in meta.data: ", subset_col)
+  srt <- subset(srt, cells = colnames(srt)[subset_vec %in% subset_value])
+  leo.basic:: leo_log("After subset {subset_col} for **{subset_value}**, {ncol(srt)} cell{?s} remains.")
+  return(srt)
+}

@@ -4,7 +4,7 @@
 #'
 #' @param crosstab the contingency table of given distribution
 #'
-#' @return A matrix of Ro/e values
+#' @return matrix of Ro/e values
 #' @export
 #' @note This function is from https://github.com/yuyang3/pan-B/blob/main/Figure4.R (line 545)
 ROIE <- function(crosstab){
@@ -47,7 +47,7 @@ ROIE <- function(crosstab){
 #'
 #' Build a Ro/e (observed / expected) matrix from single-cell metadata and,
 #' optionally, save a heatmap.
-#' @param srt              Seurat object
+#' @param srt              seurat object
 #' @param filter_col       column used to subset (optional)
 #' @param filter_criteria  values kept in `filter_col`
 #' @param anno_col         row group column; default `"cell_anno"`
@@ -59,8 +59,7 @@ ROIE <- function(crosstab){
 #' @param width,height     device size; auto when `NULL`
 #' @param fontsize         text size inside heatmap
 #' @param heatmap_anno     `"num"`, `"+++"`, or `"none"`
-#' @param sym_break        numeric breakpoints; **only two presets supported**
-#'  supported:** `c(-Inf,.1,1,2,3,Inf)` or `c(-Inf,0,.2,.8,1,Inf)`.
+#' @param sym_break        numeric breakpoints; **only two presets supported** --> `c(-Inf,.1,1,2,3,Inf)` or `c(-Inf,0,.2,.8,1,Inf)`
 #' @param ...              passed to `ComplexHeatmap::Heatmap()`
 #'
 #' @return Ro/e matrix
@@ -111,8 +110,8 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
     leo.basic::leo_log("Save heatmap ➜ {.path {plot_path}}")
     if (!dir.exists(dirname(plot_path))) dir.create(dirname(plot_path), recursive = TRUE)
 
-    if (is.null(width)) width <- 2 + ncol(roe) * .2
-    if (is.null(height)) height <- 1.5 + nrow(roe) * .15
+    if (is.null(width)) width <- 1 + ncol(roe) * .2
+    if (is.null(height)) height <- .75 + nrow(roe) * .15
 
     plus_sym <- function(v) {
       brks <- sym_break
@@ -152,3 +151,166 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
     return(roe)
   }
 }
+
+#' Run Augur analysis
+#'
+#' We added functionality to subset srt obj so that you can compare differet group's results
+#'
+#' @param srt Seurat object
+#' @param subset_col Character. Column in meta.data to subset by (e.g. "Stage1")
+#' @param subset_value Character vector. Values to retain in `subset_col`
+#' @param label_level Character vector. Factor level order for `subset_col` (default: same as `subset_value`)
+#' @param label_col Character. Column in meta.data used as label for Augur
+#' @param cell_type_col Character. Column in meta.data representing cell types
+#' @param n_threads Integer. Number of threads for parallel Augur computation
+#' @param return Character. If `"plot"` (default), returns a list of plot and data; otherwise returns raw Augur object
+#'
+#' @import Seurat
+#' @importFrom Augur calculate_auc
+#' @importFrom ggplot2 aes geom_point geom_segment scale_color_manual theme element_text
+#'
+#' @return If `return = "plot"`, a list with `plot` (ggplot object) and `dat` (Augur result); else, Augur result only
+#' @export
+leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inactive"),
+                      label_level = NULL, label_col = "Stage1", cell_type_col = "cell_anno",
+                      n_threads = 8, return = "plot"){
+  if (class(subset_value) != "vector") subset_value <- as.vector(subset_value)
+  if (is.null(label_level)) label_level <- unique(srt@meta.data[[label_col]])
+  if (!is.null(subset_col)) {
+    srt <- subset_srt(srt, subset_col, subset_value)
+    leo_log("After subset {subset_col} for **{subset_value}**, {ncol(srt)} cell{?s} remains.")
+  }
+  if (!is.null(levels)) {
+    if (length(unique(srt[[label_col]][[1]])) != length(label_level)) stop("The number of levels does not match.")
+    srt@meta.data[[label_col]] <- factor(srt@meta.data[[label_col]], levels = label_level)
+  }
+  leo_log("Calculating AUC using {label_col} as label_col and {cell_type_col} as cell_type_col with {n_threads} thread{?s}")
+  augur <- calculate_auc(srt,
+                         label_col = label_col,
+                         cell_type_col = cell_type_col,
+                         n_threads = n_threads)
+  if(return == "plot"){
+    p <- plot_lollipop(augur) +
+      # geom_segment(aes(xend = cell_type, yend = 0.5), size = 1) +
+      geom_point(size = 3, aes(color = cell_type)) +
+      scale_color_manual(values = cell_anno_color) +
+      theme(
+        plot.title      = element_text(face = 'bold', hjust = 0, size = 14, color = 'black'),
+        legend.title    = element_text(size = 10, face = 'bold', color = 'black'),
+        legend.text     = element_text(size = 9, color = 'black'),
+        axis.title      = element_text(size = 10, face = 'bold', color = 'black'),
+        axis.text       = element_text(size = 8, color = 'black'),
+        axis.text.x     = element_text(size = 8, color = 'black'),
+        axis.text.y     = element_text(size = 8, color = 'black'),
+        panel.grid.minor= element_blank(),
+        legend.position ='right'
+      )
+    return(list(plot = p, dat = augur))
+  } else {
+    return(augur)
+  }
+}
+
+
+#' Run Milo differential abundance workflow on a Seurat object
+#'
+#' Lightweight wrapper to build a Milo object, define neighbourhoods, count cells,
+#' and test differential abundance with optional batch-aware design.
+#'
+#' @param all Seurat object
+#' @param sample Character. Meta column used as sample identifier (default: "orig.ident")
+#' @param group Character. Meta column encoding the biological group/condition (default: "Stage1")
+#' @param group_level Character vector. Desired factor levels for `group` (controls ordering)
+#' @param cell_type Ignored in current version (placeholder for future stratification)
+#' @param milo_mode Character, either `"fast"` or other. Controls neighbourhood refinement and testing behavior
+#' @param batch NULL or character. If non-NULL, meta column name used as batch covariate
+#'
+#' @return A list with components `da_results` (Milo differential abundance result) and `milo_obj` (constructed Milo object)
+#' @examples
+#' \dontrun{
+#' res <- leo.milo(all)
+#' milo_obj   <- res$milo_obj
+#' da_results <- res$da_results
+#' }
+#' @importFrom miloR Milo buildGraph makeNhoods plotNhoodSizeHist countCells calcNhoodDistance testNhoods buildNhoodGraph
+#' @importFrom dplyr distinct
+#' @importFrom SingleCellExperiment reducedDimNames
+#' @import Seurat
+#' @export
+leo.milo <- function(all, sample = "orig.ident", group = "case_ctrl",
+                     group_level = c("ctrl", "vkh"), # maybe it is better to use only two group?
+                     cell_type = "cell_anno", milo_mode = "fast", batch = NULL) { # set to NULL if no batch correction required
+  ec <- leo.basic::leo_log; ec("Tutorial: https://www.bioconductor.org/packages/devel/bioc/vignettes/miloR/inst/doc/milo_gastrulation.html?")
+  require(miloR); require(SingleCellExperiment)
+  if (class(all$orig.ident) != "character") all$orig.ident <- as.character(all$orig.ident)
+  if (!identical(levels(all@meta.data[[group]]), group_level)) all@meta.data[[group]] <- factor(all@meta.data[[group]], levels = group_level)
+
+  ec("Converting to a SingleCellExperiment obj...")
+  all2 <- as.SingleCellExperiment(all); ec("Created a SingleCellExperiment object")
+  n_d <- min(50, ncol(reducedDim(all2, "PCA")))
+
+  all2 <- miloR::Milo(all2); ec("Created a Milo object")
+  all2 <- miloR::buildGraph(all2, k = 30, d = n_d); ec("Constructed KNN graph")
+
+  if (milo_mode == "fast") {
+    all2 <- miloR::makeNhoods(all2, prop = 0.05, k = 30, d = n_d, refined = TRUE, refinement_scheme="graph"); ec("(fast mode --> refinement_scheme='graph') Defined representative neighbourhoods on the KNN graph")
+  } else {
+    all2 <- miloR::makeNhoods(all2, prop = 0.1, k = 30, d = n_d, refined = TRUE); ec("Defined representative neighbourhoods on the KNN graph")
+  }
+  ec("Ploting neighbourhood size histogram --> As a rule of thumb we want to have an average neighbourhood size over 5 x N_samples = {5*length(unique(all@meta.data[[sample]]))}")
+  miloR::plotNhoodSizeHist(all2)
+
+  all2 <- miloR::countCells(all2, sample = sample, meta.data = data.frame(colData(all2))); ec("Cells in neighbourhoods Counted")
+
+  # Defining experimental design
+  if (is.null(batch)) {
+    exp_design <- data.frame(colData(all2))[,c(sample, group)]; ec("The design is NOT batch-aware")
+    colnames(exp_design) <- c("sample", "group")
+  } else {
+    exp_design <- data.frame(colData(all2))[,c(sample, group, batch)]; ec("The design is batch-aware")
+    exp_design[[batch]] <- as.factor(exp_design[[batch]])
+    colnames(exp_design) <- c("sample", "group", "batch")
+  }
+  exp_design$sample <- as.factor(exp_design$sample)
+  exp_design <- distinct(exp_design)
+  rownames(exp_design) <- exp_design$sample
+
+  # Computing neighbourhood connectivity
+  if (mode != "fast") {
+    ec("Next, we will be computing neighbourhood connectivity")
+    ec("It took ~10 hours to calculate for a ~40w cells dataset. I almost thought it has been stucked.")
+    ec("This is a computationally intensive step, it may take a while to run. Take a walk or coffee.")
+    all2 <- miloR::calcNhoodDistance(all2, d = n_d); ec("Neighbourhood connectivity computed")
+  }
+
+  # Testing
+  ec("Now we can do the DA test, explicitly defining our experimental design")
+  if (mode == "fast") {
+    if (is.null(batch)) {
+      da_results <- miloR::testNhoods(all2, design = ~ group,
+                                      design.df = exp_design,
+                                      fdr.weighting="graph-overlap")
+    } else {
+      da_results <- miloR::testNhoods(all2, design = ~ batch + group,
+                                      design.df = exp_design,
+                                      fdr.weighting="graph-overlap")
+    }
+  } else {
+    if (is.null(batch)) {
+      da_results <- miloR::testNhoods(all2,
+                                      design = ~ group,
+                                      design.df = exp_design)
+    } else {
+      da_results <- miloR::testNhoods(all2,
+                                      design = ~ batch + group,
+                                      design.df = exp_design)
+    }
+  }
+  # ggplot(da_results, aes(PValue)) + geom_histogram(bins=50)
+  # ggplot(da_results, aes(logFC, -log10(SpatialFDR))) +
+  #   geom_point() +
+  #   geom_hline(yintercept = 1)
+  all2 <- miloR::buildNhoodGraph(all2); ec("Now you can visualize the milo results.")
+  return(list(da_results = da_results, milo_obj = all2))
+}
+
