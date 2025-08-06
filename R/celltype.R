@@ -223,7 +223,12 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
 #' @param group_level Character vector. Desired factor levels for `group` (controls ordering)
 #' @param cell_type Ignored in current version (placeholder for future stratification)
 #' @param milo_mode Character, either `"fast"` or other. Controls neighbourhood refinement and testing behavior
-#' @param batch NULL or character. If non-NULL, meta column name used as batch covariate
+#' @param reduced.dim Character. Set to the batch-corrected dim (default: "harmony")
+#' @param k Integer. Number of nearest neighbours to use for graph construction (default: 50)
+#' @param prop Numeric (0.1-0.2). Proportion of cells to use for neighbourhood definition (default: 0.1)
+#'   Note that for large data sets, it might be good to set k higher (50-100) and prop lower (0.01-0.1). See: https://github.com/MarioniLab/miloR/issues/108
+#' @param adjust_k_p_manual Logical. If `TRUE`, allows interactive adjustment of `k` and `prop` parameters.
+#' @param batch NULL or character. Feels useless yet as Seraut obj normally has already processed with batch-integration like harmony.
 #'
 #' @return A list with components `da_results` (Milo differential abundance result) and `milo_obj` (constructed Milo object)
 #' @examples
@@ -237,30 +242,60 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
 #' @importFrom SingleCellExperiment reducedDimNames
 #' @import Seurat
 #' @export
-leo.milo <- function(all, sample = "orig.ident", group = "case_ctrl",
-                     group_level = c("ctrl", "vkh"), # maybe it is better to use only two group?
-                     cell_type = "cell_anno", milo_mode = "fast", batch = NULL) { # set to NULL if no batch correction required
+leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
+                     group = "case_ctrl", group_level = c("ctrl", "vkh"),
+                     cell_type = "cell_anno", reduced.dim = "harmony",
+                     k = 50, prop = 0.1, adjust_k_p_manual = F,
+                     contrast_list = NULL, batch = NULL) {
   ec <- leo.basic::leo_log; ec("Tutorial: https://www.bioconductor.org/packages/devel/bioc/vignettes/miloR/inst/doc/milo_gastrulation.html?")
   require(miloR); require(SingleCellExperiment)
   if (class(all$orig.ident) != "character") all$orig.ident <- as.character(all$orig.ident)
   if (!identical(levels(all@meta.data[[group]]), group_level)) all@meta.data[[group]] <- factor(all@meta.data[[group]], levels = group_level)
+  reduced.dim <- toupper(reduced.dim)
 
   ec("Converting to a SingleCellExperiment obj...")
   all2 <- as.SingleCellExperiment(all); ec("Created a SingleCellExperiment object")
   n_d <- min(50, ncol(reducedDim(all2, "PCA")))
 
   all2 <- miloR::Milo(all2); ec("Created a Milo object")
-  all2 <- miloR::buildGraph(all2, k = 30, d = n_d); ec("Constructed KNN graph")
 
+  all2 <- miloR::buildGraph(all2, k = k, d = n_d, reduced.dim = reduced.dim); ec("Constructed KNN graph based on {reduced.dim}")
   if (milo_mode == "fast") {
-    all2 <- miloR::makeNhoods(all2, prop = 0.05, k = 30, d = n_d, refined = TRUE, refinement_scheme="graph"); ec("(fast mode --> refinement_scheme='graph') Defined representative neighbourhoods on the KNN graph")
+    all2 <- miloR::makeNhoods(all2, prop = prop, k = k, d = n_d, refined = TRUE, reduced_dims = reduced.dim, refinement_scheme="graph"); ec("(fast mode --> refinement_scheme='graph') Defined representative neighbourhoods on the KNN graph")
   } else {
-    all2 <- miloR::makeNhoods(all2, prop = 0.1, k = 30, d = n_d, refined = TRUE); ec("Defined representative neighbourhoods on the KNN graph")
+    all2 <- miloR::makeNhoods(all2, prop = prop, k = k, d = n_d, refined = TRUE, reduced_dims = reduced.dim); ec("Defined representative neighbourhoods on the KNN graph")
   }
-  ec("Ploting neighbourhood size histogram --> As a rule of thumb we want to have an average neighbourhood size over 5 x N_samples = {5*length(unique(all@meta.data[[sample]]))}")
-  miloR::plotNhoodSizeHist(all2)
+  ec("Ploting neighbourhood size histogram --> As a rule of thumb we want to have an average neighbourhood size over 5 x N_samples = {5*length(unique(all@meta.data[[sample]]))}", level = "success")
+  df <- data.frame(nh_size = colSums(nhoods(all2)))
+  ec("Your mean neighbourhood size is now {mean(df$nh_size)} and median is {median((df$nh_size))}")
+  print(miloR::plotNhoodSizeHist(all2))
 
-  all2 <- miloR::countCells(all2, sample = sample, meta.data = data.frame(colData(all2))); ec("Cells in neighbourhoods Counted")
+  ### manually adjust k and prop params ------------------------------------
+  if (adjust_k_p_manual && interactive()) {
+    require(glue); require(utils)
+    ec("----------------------------------------------------------------------")
+    ec("Interactive tuning for k / prop ...")
+    repeat {
+      k_in   <- readline(glue("current k = {k};   new k (blank to keep): "))
+      prop_in<- readline(glue("current p = {prop}; new prop (blank to keep): "))
+      if (nzchar(k_in))   k    <- as.integer(k_in)
+      if (nzchar(prop_in))prop <- as.numeric(prop_in)
+
+      all2 <- miloR::buildGraph(all2, k = k, d = n_d, reduced.dim = reduced.dim)
+      all2 <- miloR::makeNhoods(all2, prop = prop, k = k, d = n_d, refined = TRUE,
+                                reduced_dims = reduced.dim,
+                                refinement_scheme = if (milo_mode == "fast") "graph" else "reduced_dim")
+      df <- data.frame(nh_size = colSums(nhoods(all2)))
+      ec("Your mean neighbourhood size is now {mean(df$nh_size)} and median is {median((df$nh_size))}")
+      print(miloR::plotNhoodSizeHist(all2))
+
+      if (isTRUE(utils::askYesNo("Accept these k / prop values?"))) break
+    }
+    ec(glue("Manual tuning done: k = {k}, prop = {prop}"))
+    ec("----------------------------------------------------------------------")
+  }
+  # Counting cells in neighbourhoods from makeNhoods
+  all2 <- miloR::countCells(all2, sample = sample, meta.data = data.frame(colData(all2))); ec("Cells in neighbourhoods counted")
 
   # Defining experimental design
   if (is.null(batch)) {
@@ -276,31 +311,35 @@ leo.milo <- function(all, sample = "orig.ident", group = "case_ctrl",
   rownames(exp_design) <- exp_design$sample
 
   # Computing neighbourhood connectivity
-  if (mode != "fast") {
+  if (milo_mode != "fast") {
     ec("Next, we will be computing neighbourhood connectivity")
     ec("It took ~10 hours to calculate for a ~40w cells dataset. I almost thought it has been stucked.")
     ec("This is a computationally intensive step, it may take a while to run. Take a walk or coffee.")
-    all2 <- miloR::calcNhoodDistance(all2, d = n_d); ec("Neighbourhood connectivity computed")
+    all2 <- miloR::calcNhoodDistance(all2, d = n_d, reduced.dim = reduced.dim); ec("Neighbourhood connectivity computed")
   }
 
   # Testing
   ec("Now we can do the DA test, explicitly defining our experimental design")
-  if (mode == "fast") {
+  if (milo_mode == "fast") {
     if (is.null(batch)) {
+      ec("DA -- No batch/ graph-overlap")
       da_results <- miloR::testNhoods(all2, design = ~ group,
                                       design.df = exp_design,
                                       fdr.weighting="graph-overlap")
     } else {
+      ec("DA -- Batch/ graph-overlap")
       da_results <- miloR::testNhoods(all2, design = ~ batch + group,
                                       design.df = exp_design,
                                       fdr.weighting="graph-overlap")
     }
   } else {
     if (is.null(batch)) {
+      ec("DA -- No batch/ k-distance (default)")
       da_results <- miloR::testNhoods(all2,
                                       design = ~ group,
                                       design.df = exp_design)
     } else {
+      ec("DA -- Batch/ k-distance (default)")
       da_results <- miloR::testNhoods(all2,
                                       design = ~ batch + group,
                                       design.df = exp_design)
@@ -310,7 +349,110 @@ leo.milo <- function(all, sample = "orig.ident", group = "case_ctrl",
   # ggplot(da_results, aes(logFC, -log10(SpatialFDR))) +
   #   geom_point() +
   #   geom_hline(yintercept = 1)
-  all2 <- miloR::buildNhoodGraph(all2); ec("Now you can visualize the milo results.")
+  all2 <- miloR::buildNhoodGraph(all2); ec("Now you can visualize the milo results.", level = "success")
   return(list(da_results = da_results, milo_obj = all2))
 }
 
+#' Visualize MiloR DA results
+#'
+#' @param milo_obj A `Milo` object.
+#' @param da_results Output from `miloR::testNhoods()`.
+#' @param layout Embedding stored in the Milo object (default `"UMAP.HARMONY"`).
+#' @param alpha FDR cutoff (default `0.05`).
+#' @param log2fc_colours Named vector with three colours for the log2FC gradient (`c(low, mid, high)`).
+#' @param log2fc_limits Two-element numeric vector giving colour-scale limits.
+#' @param mix_threshold Minimum fraction of a single annotation to avoid calling the neighbourhood “Mixed”.
+#' @param bee_order Optional character vector specifying the display order of groups in the beeswarm plot.
+#' @param bee_add_box Logical. If `TRUE`, adds a boxplot to the beeswarm plot (default `TRUE`).
+#' @param plot Integer vector. Which plots to return: `1` for neighbourhood graph, `2` for beeswarm plot.
+#' @param cell_type Character. Column in the metadata used to annotate neighbourhoods (default `"cell_anno"`).
+#'
+#' @return `list(nhood_graph, da_beeswarm)` – two **ggplot** objects.
+#' @export
+#'
+#' @importFrom miloR plotNhoodGraphDA annotateNhoods plotDAbeeswarm
+#' @importFrom ggplot2 scale_fill_gradient2 scale_color_gradient2 geom_boxplot geom_hline
+leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
+                         layout = "UMAP.HARMONY", alpha = 0.05,
+                         log2fc_colours = c(low = "#070091",
+                                            mid = "white",
+                                            high = "#910000"),
+                         log2fc_limits  = c(-5, 5),
+                         cell_type      = "cell_anno",
+                         mix_threshold  = 0.7,
+                         bee_order      = NULL,
+                         bee_add_box    = T) {
+  plot <- as.vector(plot)
+  layout <- toupper(layout)
+
+  # 1. neighbourhood-level DA graph ----------------------------------------
+  if (1 %in% plot) {
+    nhood_graph <- miloR::plotNhoodGraphDA(milo_obj, da_results,
+                                           layout = layout, alpha = alpha) +
+      ggplot2::scale_fill_gradient2(low    = log2fc_colours["low"],
+                                    mid    = log2fc_colours["mid"],
+                                    high   = log2fc_colours["high"],
+                                    name   = "log2FC",
+                                    limits = log2fc_limits,
+                                    oob    = scales::squish)
+  }
+
+  # 2. annotate & beeswarm -------------------------------------------------
+  if (2 %in% plot) {
+    da_results <- miloR::annotateNhoods(milo_obj, da_results, coldata_col = cell_type)
+    frac_col <- paste0(cell_type, "_fraction")
+
+    if (is.null(mix_threshold)) {
+      da_results$`Cell Type` <- da_results[[cell_type]]
+      has_mixed <- FALSE
+    } else {
+      da_results$`Cell Type` <- ifelse(da_results[[frac_col]] < mix_threshold, "Mixed", da_results[[cell_type]])
+      has_mixed <- any(da_results$`Cell Type` == "Mixed")
+    }
+
+    # reconcile factor levels -----------------------------------------------
+    lvl <- if (is.null(bee_order)) character(0) else bee_order; n_lvl_provided <- length(lvl)
+    lvl <- intersect(lvl, unique(da_results$`Cell Type`)); n_lvl_had <- length(lvl)
+    if (has_mixed) lvl <- c(setdiff(lvl, "Mixed"), "Mixed")
+
+    da_results$`Cell Type` <- factor(da_results$`Cell Type`, levels = rev(lvl))
+
+    da_beeswarm <- miloR::plotDAbeeswarm(da_results, group.by = "Cell Type", alpha = alpha) +
+      ggplot2::scale_color_gradient2(midpoint = 0,
+                                     low      = log2fc_colours["low"],
+                                     mid      = log2fc_colours["mid"],
+                                     high     = log2fc_colours["high"],
+                                     space    = "Lab") +
+      ggplot2::geom_hline(yintercept = 0, linetype = "dashed")
+    if (bee_add_box) {
+      da_beeswarm <- da_beeswarm +
+        ggplot2::geom_boxplot(aes(group = `Cell Type`),
+                              outlier.shape = NA,
+                              width = 0.5,
+                              fill          = "gray",
+                              alpha         = .2,
+                              colour        = "black",
+                              linewidth     = .5 )}
+    da_beeswarm <- da_beeswarm +
+      ggplot2::theme_classic() +
+      ggplot2::theme(axis.title.y    = element_blank(),
+                     axis.title      = element_text(size = 10, face = 'bold', color = 'black'),
+                     axis.text       = element_text(size = 10, color = 'black'),
+                     axis.ticks         = element_line(size = .3, colour = "black"),
+                     axis.ticks.length  = unit(3, "pt"),
+                     axis.line          = element_line(size = .4, colour = "black"),
+                     # axis.ticks.x    = element_blank(),
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank()
+      )
+  }
+
+  # Return results
+  return_list <- list()
+  if (1 %in% plot) return_list$nhood_graph <- nhood_graph
+  if (2 %in% plot) {
+    return_list$da_beeswarm <- da_beeswarm
+    return_list$da_results <- da_results
+  }
+  return(return_list)
+}

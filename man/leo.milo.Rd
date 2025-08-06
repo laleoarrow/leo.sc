@@ -7,10 +7,15 @@
 leo.milo(
   all,
   sample = "orig.ident",
+  milo_mode = "fast",
   group = "case_ctrl",
   group_level = c("ctrl", "vkh"),
   cell_type = "cell_anno",
-  milo_mode = "fast",
+  reduced.dim = "harmony",
+  k = 50,
+  prop = 0.1,
+  adjust_k_p_manual = F,
+  contrast_list = NULL,
   batch = NULL
 )
 }
@@ -19,15 +24,24 @@ leo.milo(
 
 \item{sample}{Character. Meta column used as sample identifier (default: "orig.ident")}
 
+\item{milo_mode}{Character, either \code{"fast"} or other. Controls neighbourhood refinement and testing behavior}
+
 \item{group}{Character. Meta column encoding the biological group/condition (default: "Stage1")}
 
 \item{group_level}{Character vector. Desired factor levels for \code{group} (controls ordering)}
 
 \item{cell_type}{Ignored in current version (placeholder for future stratification)}
 
-\item{milo_mode}{Character, either \code{"fast"} or other. Controls neighbourhood refinement and testing behavior}
+\item{reduced.dim}{Character. Set to the batch-corrected dim (default: "harmony")}
 
-\item{batch}{NULL or character. If non-NULL, meta column name used as batch covariate}
+\item{k}{Integer. Number of nearest neighbours to use for graph construction (default: 50)}
+
+\item{prop}{Numeric (0.1-0.2). Proportion of cells to use for neighbourhood definition (default: 0.1)
+Note that for large data sets, it might be good to set k higher (50-100) and prop lower (0.01-0.1). See: https://github.com/MarioniLab/miloR/issues/108}
+
+\item{adjust_k_p_manual}{Logical. If \code{TRUE}, allows interactive adjustment of \code{k} and \code{prop} parameters.}
+
+\item{batch}{NULL or character. Feels useless yet as Seraut obj normally has already processed with batch-integration like harmony.}
 }
 \value{
 A list with components \code{da_results} (Milo differential abundance result) and \code{milo_obj} (constructed Milo object)
