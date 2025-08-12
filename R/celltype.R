@@ -265,7 +265,7 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
   } else {
     all2 <- miloR::makeNhoods(all2, prop = prop, k = k, d = n_d, refined = TRUE, reduced_dims = reduced.dim); ec("Defined representative neighbourhoods on the KNN graph")
   }
-  ec("Ploting neighbourhood size histogram --> As a rule of thumb we want to have an average neighbourhood size over 5 x N_samples = {5*length(unique(all@meta.data[[sample]]))}", level = "success")
+  ec("Ploting neighbourhood size histogram --> As a rule of thumb we want to have an average neighbourhood size over {.emph 5 x N_samples = {5*length(unique(all@meta.data[[sample]]))}}", level = "success")
   df <- data.frame(nh_size = colSums(nhoods(all2)))
   ec("Your mean neighbourhood size is now {mean(df$nh_size)} and median is {median((df$nh_size))}")
   print(miloR::plotNhoodSizeHist(all2))
@@ -273,14 +273,27 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
   ### manually adjust k and prop params ------------------------------------
   if (adjust_k_p_manual && interactive()) {
     require(glue); require(utils)
-    ec("----------------------------------------------------------------------")
-    ec("Interactive tuning for k / prop ...")
+    ec("------- Interactive tuning for k / prop -------")
     repeat {
-      k_in   <- readline(glue("current k = {k};   new k (blank to keep): "))
-      prop_in<- readline(glue("current p = {prop}; new prop (blank to keep): "))
-      if (nzchar(k_in))   k    <- as.integer(k_in)
-      if (nzchar(prop_in))prop <- as.numeric(prop_in)
+      k_in <- readline(glue("current k = {k}; new k (blank to keep, 'exit' to stop): "))
+      if (tolower(trimws(k_in)) %in% c("exit","quit","q","ok","done")) {
+        ec("Exit command received. Keep current k / prop and finish tuning."); break
+      }
+      prop_in <- readline(glue("current p = {prop}; new prop (blank to keep, 'exit' to stop): "))
+      if (tolower(trimws(prop_in)) %in% c("exit","quit","q","ok","done")) {
+        ec("Exit command received. Keep current k / prop and finish tuning."); break
+      }
 
+      # if the two params are the same
+      new_k <- if (nzchar(k_in)) as.integer(k_in) else k
+      new_prop <- if (nzchar(prop_in)) as.numeric(prop_in) else prop
+      if (identical(new_k, k) && identical(new_prop, prop)) {
+        ec("Parameters unchanged (k = {k}, prop = {prop}); skip recalculation.")
+        if (isTRUE(utils::askYesNo("Accept these k / prop values and exit tuning?"))) break
+        next
+      }
+
+      k <- new_k; prop <- new_prop
       all2 <- miloR::buildGraph(all2, k = k, d = n_d, reduced.dim = reduced.dim)
       all2 <- miloR::makeNhoods(all2, prop = prop, k = k, d = n_d, refined = TRUE,
                                 reduced_dims = reduced.dim,
@@ -291,8 +304,7 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
 
       if (isTRUE(utils::askYesNo("Accept these k / prop values?"))) break
     }
-    ec(glue("Manual tuning done: k = {k}, prop = {prop}"))
-    ec("----------------------------------------------------------------------")
+    ec("------- Manual tuning done: k = {k}, prop = {prop} -------")
   }
   # Counting cells in neighbourhoods from makeNhoods
   all2 <- miloR::countCells(all2, sample = sample, meta.data = data.frame(colData(all2))); ec("Cells in neighbourhoods counted")
