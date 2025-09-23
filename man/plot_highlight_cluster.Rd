@@ -2,39 +2,51 @@
 % Please edit documentation in R/sc.plot.R
 \name{plot_highlight_cluster}
 \alias{plot_highlight_cluster}
-\title{Plot Highlight a cluster on a dimensional reduction}
+\title{Highlight a cluster on a dimensional reduction (SeuratExtend)}
 \usage{
 plot_highlight_cluster(
   obj,
   cluster_id,
   reduction = NULL,
   group.by = NULL,
-  highlight.col = "red",
+  highlight.col = "#DE2D26",
   other.col = "grey80",
-  pt.size = 1,
+  pt.size = 0.6,
+  raster = NULL,
   dpi = 300
 )
 }
 \arguments{
-\item{obj}{A Seurat object}
+\item{obj}{Seurat object.}
 
-\item{cluster_id}{Cluster identifier to highlight}
+\item{cluster_id}{Value to highlight (in Idents(obj) or obj[\link{group.by}]).}
 
-\item{reduction}{Dimensional reduction name (defaults to active reduction)}
+\item{reduction}{Dimred name; default active reduction.}
 
-\item{group.by}{Metadata column or NULL to use identities}
+\item{group.by}{Meta column for membership; default uses Idents.}
 
-\item{highlight.col}{Color for highlighted cluster}
+\item{highlight.col}{Color for highlighted cells.}
 
-\item{other.col}{Color for other cells}
+\item{other.col}{Color for other cells (background).}
 
-\item{pt.size}{Point size}
+\item{pt.size}{Point size.}
 
-\item{dpi}{DPI for rasterization if >1e5 cells}
+\item{raster}{Logical or NULL; if NULL, auto-enable when >1e5 cells.}
+
+\item{dpi}{DPI when raster=TRUE.}
 }
 \value{
-ggplot2 object
+ggplot object.
 }
 \description{
-Plot Highlight a cluster on a dimensional reduction
+Highlight a cluster on a dimensional reduction (SeuratExtend)
+}
+\examples{
+library(patchwork)
+data("pbmc_small", package = "SeuratObject")
+p0 <- Seurat::DimPlot(pbmc_small, reduction = "pca", label = T) + Seurat::NoLegend(); print(p0)
+p1 <- plot_highlight_cluster(pbmc_small,
+                             cluster_id = levels(Seurat::Idents(pbmc_small))[1],
+                             reduction = "pca", pt.size = 0.4, raster = F, dpi = 300)
+(p0 | p1)
 }

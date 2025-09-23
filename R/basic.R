@@ -372,11 +372,9 @@ seurat_basic_info <- function(seurat_obj, assay = NULL, slot = "counts") {
   leo.basic::leo_log(sprintf("total cells: %d", total_cells))
   leo.basic::leo_log(sprintf("avg genes per cell: %.2f", avg_genes_per_cell))
 
-  list(
-    total_genes        = total_genes,
-    total_cells        = total_cells,
-    avg_genes_per_cell = avg_genes_per_cell
-  )
+  list(total_genes        = total_genes,
+       total_cells        = total_cells,
+       avg_genes_per_cell = avg_genes_per_cell)
 }
 
 # decontX

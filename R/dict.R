@@ -77,6 +77,11 @@
   Mono_CD14 = c("S100A8","S100A9","LYZ","VCAN"), # CD14⁺ classical mono
   Mono_CD16 = c("FCGR3A","FCGR3B","MS4A7","LST1","LYPD2") # CD16⁺ non-classical mono
 )
+.dc_inflammation_score <- list(
+  dc_inflammation_score = c("BST1","CD163","F13A1","S100A9","S100A8",
+                            "VCAN","RNASE2","FCN1","CD14","TMEM176B",
+                            "PLBD1","MGST1","RAB3D","CD36")
+)
 
 # Marker hub --------
 #' Marker hub
@@ -112,6 +117,13 @@ leo.marker <- list(
     name = "Curated myeloid cell markers",
     note1 = "Refer to Azimuth: https://azimuth.hubmapconsortium.org/references/#Human%20-%20PBMC",
     note2 = "DC3 markers refer to https://doi.org/10.1038/s41586-024-07698-1 (Nature 2024)"
+  ),
+  dc_inflammation_score = list(
+    data = .dc_inflammation_score,
+    name = "DC inflammation score genes",
+    title = "Chromatin accessibility analysis reveals regulatory dynamics and therapeutic relevance of Vogt-Koyanagi-Harada disease",
+    source = "https://static-content.springer.com/esm/art%3A10.1038%2Fs42003-022-03430-9/MediaObjects/42003_2022_3430_MOESM1_ESM.pdf",
+    note = "Su Wenru, 2022communicationsbiology"
   ),
   leo.note = list(
     name = "sc note for Leo.sc marker hub. Come check this when you have no clues.",
