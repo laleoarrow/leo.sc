@@ -223,7 +223,7 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
 #' @param other.col Color for other cells (background).
 #' @param pt.size Point size.
 #' @param raster Logical or NULL; if NULL, auto-enable when >1e5 cells.
-#' @param dpi DPI when raster=TRUE.
+#' @param dpi DPI when raster=TRUE (length 1 or 2).
 #' @return ggplot object.
 #'
 #' @importFrom Seurat Idents NoAxes NoLegend
@@ -232,39 +232,43 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
 #' @importFrom leo.basic leo_log
 #'
 #' @examples
-#' library(patchwork)
 #' data("pbmc_small", package = "SeuratObject")
-#' p0 <- Seurat::DimPlot(pbmc_small, reduction = "pca", label = T) + Seurat::NoLegend(); print(p0)
+#' p0 <- Seurat::DimPlot(pbmc_small, reduction = "pca", label = TRUE) + Seurat::NoLegend(); print(p0)
 #' p1 <- plot_highlight_cluster(pbmc_small,
 #'                              cluster_id = levels(Seurat::Idents(pbmc_small))[1],
-#'                              reduction = "pca", pt.size = 0.4, raster = F, dpi = 300)
-#' (p0 | p1)
+#'                              reduction = "pca", pt.size = 0.6, raster = FALSE, dpi = 300); print(p1)
 #' @export
 plot_highlight_cluster <- function(obj, cluster_id, reduction=NULL, group.by=NULL,
                                    highlight.col="#DE2D26", other.col="grey80",
-                                   pt.size=0.6, raster=NULL, dpi=300) {
-  # Validate inputs
+                                   pt.size=0.6, raster=NULL, dpi=300, ...) {
+  # validate
   if (!is.null(group.by) && !group.by %in% colnames(obj@meta.data)) stop("`group.by` not found in meta.data.")
   if (is.null(reduction)) reduction <- SeuratObject::DefaultDimReduc(obj)
 
-  # Determine membership and target cells
-  grp <- if (is.null(group.by)) Seurat::Idents(obj) else obj[[group.by, drop=T]]
+  # membership & target cells
+  grp <- if (is.null(group.by)) Seurat::Idents(obj) else obj[[group.by, drop=TRUE]]
   cells_hl <- names(grp)[as.character(grp) == as.character(cluster_id)]
   if (length(cells_hl) == 0) stop("No cells match `cluster_id` under current grouping.")
   raster_use <- if (is.null(raster)) ncol(obj) > 1e5 else raster
   dpi_vec <- if (length(dpi) == 1) c(dpi, dpi) else as.numeric(dpi)
   if (length(dpi_vec) != 2) stop("`dpi` must be length 1 or 2 numeric.")
 
-  # Logging (leo_log supports glue syntax internally)
+  # legend groups: "{cluster_id}" vs "other"
+  lab_vec <- ifelse(colnames(obj) %in% cells_hl, as.character(cluster_id), "other")
+  obj$`..hl..` <- factor(lab_vec, levels = c("other", as.character(cluster_id)))
+  on.exit({obj$`..hl..` <- NULL}, add = TRUE)
   leo.basic::leo_log("highlight={cluster_id}; cells={length(cells_hl)}/{ncol(obj)}; reduction={reduction}; raster={raster_use}@{paste(dpi_vec, collapse='x')}dpi")
 
-  # Plot with SeuratExtend (built-in raster + highlight)
+  # colors
+  manual_cols <- c(other.col, highlight.col)
+
+  # plot (group.by gives legend; cells.highlight draws top layer)
   p <- SeuratExtend::DimPlot2(
-    seu=obj, reduction=reduction, cells.highlight=cells_hl,
-    cols.highlight=highlight.col, cols=other.col, pt.size=pt.size,
-    raster=raster_use, raster.dpi=dpi_vec, theme=Seurat::NoAxes()
+    seu = obj, reduction = reduction, group.by = "..hl..",
+    cells.highlight = cells_hl, cols.highlight = highlight.col, sizes.highlight = pt.size,
+    cols = manual_cols, load.cols = FALSE,
+    pt.size = pt.size, raster = raster_use, raster.dpi = dpi_vec, theme = Seurat::NoAxes(), ...
   )
 
-  leo.basic::leo_log("Done: highlighted {cluster_id} on {reduction}.", level="success")
-  return(p)
+  leo.basic::leo_log("Done: highlighted {cluster_id} on {reduction}.", level = "success"); p
 }

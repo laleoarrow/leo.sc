@@ -1,2 +1,0 @@
-job_id	file_name	time
-job-J35vGX8JF6f0z4PVk3y6xQ14	HLA_22182	2025-09-18T08:43:53.309256Z
