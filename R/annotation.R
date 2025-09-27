@@ -159,6 +159,9 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
 calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
                       min.cells = 10, min.genes = 10,
                       anno_label = "celltype_broad", sample_label = "orig.ident", ...) {
+  t0 <- Sys.time()
+  requireNamespace("Matrix", quietly = TRUE)
+  requireNamespace("ROGUE", quietly = TRUE)
   if (!is.null(downsample)) {
     leo.basic::leo_log("Downsampling to", downsample, "cells per", anno_label, "group")
     Idents(obj) <- obj[[anno_label]][,1]
@@ -173,7 +176,6 @@ calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
     if (length(dim(expr)) != 2) {
       stop("`expr` must be 2-dimensional, but dim(expr) = ", paste(dim(expr), collapse = "x"), call. = FALSE)
     }
-    requireNamespace("Matrix", quietly = TRUE)
     gene_count <- Matrix::colSums(expr > 0, na.rm = T)
     cell_count <- Matrix::rowSums(expr > 0, na.rm = T)
     keep_cells <- cell_count >= min.cells
@@ -199,6 +201,7 @@ calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
                   samples = obj@meta.data[[sample_label]],
                   ...)
   leo.basic::leo_log("Done! `rogue.boxplot(rogue.res)` to visualize.", level = "success")
+  leo.basic::leo_time_elapsed(t0)
   return(res)
 }
 
@@ -246,12 +249,20 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
   res <- pbmcapply::pbmclapply(clusters, sample.rogue,
                                meta = meta,
                                mc.cores = mc.cores)
-  res.tibble <- Reduce(rbind, res) %>% as.matrix() %>% t() %>%
-    as.data.frame()
-  # print(length(clusters))
-  # print(length(unique(samples)))
-  colnames(res.tibble) <- clusters
-  rownames(res.tibble) <- unique(samples)
+
+  # 20250927: update the logics here ---
+  # res.tibble <- Reduce(rbind, res) %>% as.matrix() %>% t() %>%
+  #   as.data.frame()
+  # # print(length(clusters))
+  # # print(length(unique(samples)))
+  # colnames(res.tibble) <- clusters
+  # rownames(res.tibble) <- unique(samples)
+  # 20250927: replace the above to the below---
+  mat <- do.call(cbind, res)
+  colnames(mat) <- clusters
+  rownames(mat) <- s
+  res.tibble <- as.data.frame(mat)
+  # ---
   return(res.tibble)
 }
 

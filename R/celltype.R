@@ -221,7 +221,6 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
 #' @param sample Character. Meta column used as sample identifier (default: "orig.ident")
 #' @param group Character. Meta column encoding the biological group/condition (default: "Stage1")
 #' @param group_level Character vector. Desired factor levels for `group` (controls ordering)
-#' @param cell_type Ignored in current version (placeholder for future stratification)
 #' @param milo_mode Character, either `"fast"` or other. Controls neighbourhood refinement and testing behavior
 #' @param reduced.dim Character. Set to the batch-corrected dim (default: "harmony")
 #' @param k Integer. Number of nearest neighbours to use for graph construction (default: 50)
@@ -229,6 +228,7 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
 #'   Note that for large data sets, it might be good to set k higher (50-100) and prop lower (0.01-0.1). See: https://github.com/MarioniLab/miloR/issues/108
 #' @param adjust_k_p_manual Logical. If `TRUE`, allows interactive adjustment of `k` and `prop` parameters.
 #' @param batch NULL or character. Feels useless yet as Seraut obj normally has already processed with batch-integration like harmony.
+#' @param cell_type Deprecated! Ignored in current version (placeholder for future stratification)
 #'
 #' @return A list with components `da_results` (Milo differential abundance result) and `milo_obj` (constructed Milo object)
 #' @examples
@@ -244,9 +244,12 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
 #' @export
 leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
                      group = "case_ctrl", group_level = c("ctrl", "vkh"),
-                     cell_type = "cell_anno", reduced.dim = "harmony",
-                     k = 50, prop = 0.1, adjust_k_p_manual = F,
-                     contrast_list = NULL, batch = NULL) {
+                     reduced.dim = "harmony",
+                     k = 50, prop = 0.1,
+                     adjust_k_p_manual = F,
+                     contrast_list = NULL,
+                     batch = NULL,
+                     cell_type = NULL) {
   ec <- leo.basic::leo_log; ec("Tutorial: https://www.bioconductor.org/packages/devel/bioc/vignettes/miloR/inst/doc/milo_gastrulation.html?")
   require(miloR); require(SingleCellExperiment)
   if (class(all$orig.ident) != "character") all$orig.ident <- as.character(all$orig.ident)
@@ -378,12 +381,14 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
 #' @param bee_add_box Logical. If `TRUE`, adds a boxplot to the beeswarm plot (default `TRUE`).
 #' @param plot Integer vector. Which plots to return: `1` for neighbourhood graph, `2` for beeswarm plot.
 #' @param cell_type Character. Column in the metadata used to annotate neighbourhoods (default `"cell_anno"`).
+#' @param bee_labs Named character vector giving axis titles for the bee plot: (`c(x = "Cell Type", y = "Log Fold Change")`). If `NULL`, no axis labels are added.
 #'
-#' @return `list(nhood_graph, da_beeswarm)` – two **ggplot** objects.
+#' @return 1: UMAP of the DA; 2: bee plot of the DA results; 3: vertical bee plot; 4. DA results with cell type annotation (based on 'cell_type' params)
 #' @export
 #'
 #' @importFrom miloR plotNhoodGraphDA annotateNhoods plotDAbeeswarm
-#' @importFrom ggplot2 scale_fill_gradient2 scale_color_gradient2 geom_boxplot geom_hline
+#' @importFrom ggplot2 scale_fill_gradient2 scale_color_gradient2 geom_boxplot geom_hline coord_cartesian
+#' @importFrom leo.basic leo_log leo_time_elapsed
 leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
                          layout = "UMAP.HARMONY", alpha = 0.05,
                          log2fc_colours = c(low = "#070091",
@@ -393,12 +398,15 @@ leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
                          cell_type      = "cell_anno",
                          mix_threshold  = 0.7,
                          bee_order      = NULL,
+                         bee_labs       = c(x = "Cell Type", y = "Log Fold Change"),
                          bee_add_box    = T) {
+  t0 <- Sys.time(); leo.basic::leo_log("Visualizing Milo DA results...")
   plot <- as.vector(plot)
   layout <- toupper(layout)
 
   # 1. neighbourhood-level DA graph ----------------------------------------
   if (1 %in% plot) {
+    leo.basic::leo_log("Visualizing plotNhoodGraphDA...")
     nhood_graph <- miloR::plotNhoodGraphDA(milo_obj, da_results,
                                            layout = layout, alpha = alpha) +
       ggplot2::scale_fill_gradient2(low    = log2fc_colours["low"],
@@ -411,6 +419,7 @@ leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
 
   # 2. annotate & beeswarm -------------------------------------------------
   if (2 %in% plot) {
+    leo.basic::leo_log("Visualizing bee plots...")
     da_results <- miloR::annotateNhoods(milo_obj, da_results, coldata_col = cell_type)
     frac_col <- paste0(cell_type, "_fraction")
 
@@ -436,15 +445,22 @@ leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
                                      high     = log2fc_colours["high"],
                                      space    = "Lab") +
       ggplot2::geom_hline(yintercept = 0, linetype = "dashed")
+    # remove unwant space
+    n_groups <- length(levels(da_results$`Cell Type`))
+    da_beeswarm <- da_beeswarm + ggplot2::scale_x_continuous(limits = c(0.5, n_groups + 0.5),
+                                                             breaks = seq_len(n_groups),
+                                                             labels = levels(da_results$`Cell Type`),
+                                                             expand = ggplot2::expansion(mult = c(0.01, 0.01)) ) +
+      ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.02, 0.02)) )
+
     if (bee_add_box) {
       da_beeswarm <- da_beeswarm +
-        ggplot2::geom_boxplot(aes(group = `Cell Type`),
-                              outlier.shape = NA,
-                              width = 0.5,
-                              fill          = "gray",
-                              alpha         = .2,
-                              colour        = "black",
-                              linewidth     = .5 )}
+        ggplot2::geom_boxplot(aes(group = `Cell Type`), varwidth = FALSE,
+                              width = .1, alpha = .1,
+                              fill = NA, colour = "gray10",
+                              linewidth = .5, median.linewidth = .5,
+                              outlier.shape = NA ) }
+
     da_beeswarm <- da_beeswarm +
       ggplot2::theme_classic() +
       ggplot2::theme(axis.title.y    = element_blank(),
@@ -455,8 +471,16 @@ leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
                      axis.line          = element_line(size = .4, colour = "black"),
                      # axis.ticks.x    = element_blank(),
                      panel.grid.major = element_blank(),
-                     panel.grid.minor = element_blank()
-      )
+                     panel.grid.minor = element_blank() )
+
+    if (!is.null(bee_labs)) {
+      da_beeswarm <- da_beeswarm + ggplot2::labs(x = bee_labs[["x"]], y = bee_labs[["y"]])
+    } else {
+      da_beeswarm <- da_beeswarm + ggplot2::labs(x = NULL, y = NULL)
+    }
+
+    da_beeswarm.v <- da_beeswarm + ggplot2::coord_cartesian() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = .5, hjust = 1))
   }
 
   # Return results
@@ -464,7 +488,10 @@ leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
   if (1 %in% plot) return_list$nhood_graph <- nhood_graph
   if (2 %in% plot) {
     return_list$da_beeswarm <- da_beeswarm
+    return_list$da_beeswarm.v <- da_beeswarm.v
     return_list$da_results <- da_results
   }
+
+  leo.basic::leo_time_elapsed(t0)
   return(return_list)
 }

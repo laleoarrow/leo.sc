@@ -2,18 +2,23 @@
 % Please edit documentation in R/sc.plot.R
 \name{plot_highlight_cluster}
 \alias{plot_highlight_cluster}
-\title{Highlight a cluster on a dimensional reduction (SeuratExtend)}
+\title{Highlight a cluster}
 \usage{
 plot_highlight_cluster(
   obj,
   cluster_id,
   reduction = NULL,
   group.by = NULL,
-  highlight.col = "#DE2D26",
+  highlight.col = NULL,
   other.col = "grey80",
   pt.size = 0.6,
+  pt.shape = 16,
   raster = NULL,
-  dpi = 300
+  dpi = 300,
+  legend = TRUE,
+  legend_labels = NULL,
+  legend_breaks = NULL,
+  legend_pos = NULL
 )
 }
 \arguments{
@@ -23,30 +28,83 @@ plot_highlight_cluster(
 
 \item{reduction}{Dimred name; default active reduction.}
 
-\item{group.by}{Meta column for membership; default uses Idents.}
+\item{group.by}{Metadata column; NULL uses Idents.}
 
-\item{highlight.col}{Color for highlighted cells.}
+\item{highlight.col}{Highlight color; NULL -> ggsci NPG red.}
 
-\item{other.col}{Color for other cells (background).}
+\item{other.col}{Background color (default "grey80").}
 
 \item{pt.size}{Point size.}
 
-\item{raster}{Logical or NULL; if NULL, auto-enable when >1e5 cells.}
+\item{pt.shape}{Point shape (ggplot2 pch), default 16.}
 
-\item{dpi}{DPI when raster=TRUE.}
+\item{raster}{Logical or NULL; NULL auto-enable when >1e5 cells.}
+
+\item{dpi}{Single numeric DPI for raster geoms (default 300).}
+
+\item{legend}{Show legend (default TRUE).}
+
+\item{legend_labels}{Named vector to rename legend entries; must include
+c("highlight","other"). Defaults to c(highlight=<cluster_id>, other="other").}
+
+\item{legend_breaks}{Character vector to set legend order/visibility; accepts keys
+in c("highlight","other") or their display labels in \code{legend_labels}.
+Default c("highlight","other"). Use "highlight" only to hide "other".}
+
+\item{legend_pos}{Legend position (inside); NULL uses ggplot2 default (outside, right).}
 }
 \value{
 ggplot object.
 }
 \description{
-Highlight a cluster on a dimensional reduction (SeuratExtend)
+This function highlight a cluster on a dimensional reduction in NPG palette with highlight on top.
 }
 \examples{
-library(patchwork)
+# load demo data
 data("pbmc_small", package = "SeuratObject")
-p0 <- Seurat::DimPlot(pbmc_small, reduction = "pca", label = T) + Seurat::NoLegend(); print(p0)
-p1 <- plot_highlight_cluster(pbmc_small,
-                             cluster_id = levels(Seurat::Idents(pbmc_small))[1],
-                             reduction = "pca", pt.size = 0.4, raster = F, dpi = 300)
-(p0 | p1)
+
+# 1) Basic: highlight first cluster on PCA (NPG red, other gray)
+plot_highlight_cluster(pbmc_small, cluster_id = levels(Seurat::Idents(pbmc_small))[1],
+                       reduction = "pca", pt.size = 0.5, pt.shape = 16, raster = FALSE, dpi = 300)
+
+# 2) Use UMAP (active reduction will auto-detect; here we set explicitly if available)
+pbmc_small <- Seurat::RunUMAP(pbmc_small, reduction = "pca", dims = 1:10)
+plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "umap",
+                       pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+
+# 3) Custom colors (manual override): highlight blue, background light gray
+plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+                       highlight.col = "#377EB8", other.col = "grey85",
+                       pt.size = 0.7, pt.shape = 16, raster = FALSE, dpi = 300)
+
+# 4) Hide legend entirely
+plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+                       legend = FALSE, pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+
+# 5) Rename legend entries & order them (show highlight then other)
+plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+                       legend_labels = c(highlight = "Yes", other = "No"),
+                       legend_breaks = c("highlight","other"),
+                       pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+
+# 6) Show only the highlight entry in legend (hide "other")
+plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+                       legend_labels = c(highlight = "Yes", other = "No"),
+                       legend_breaks = "highlight",
+                       pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+
+# 7) Big data style: force rasterization and set DPI
+plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+                       raster = TRUE, dpi = 500, pt.size = 0.6, pt.shape = 16)
+
+# 8) Use a metadata column for grouping (e.g., Stage1), highlight "Control"
+#    (replace "Stage1" with your metadata column that contains "Control")
+pbmc_small$Stage1 <- ifelse(as.character(Seurat::Idents(pbmc_small)) == "0", "Control", "Other")
+plot_highlight_cluster(pbmc_small, cluster_id = "Control", group.by = "Stage1",
+                       reduction = "pca", pt.size = 0.6, pt.shape = 16,
+                       raster = FALSE, dpi = 300)
+# 9) Same as above but customize legend position (inside plot area, e.g. top-right)
+plot_highlight_cluster(pbmc_small, cluster_id = "Control", group.by = "Stage1",
+                       reduction = "pca", pt.size = 0.6, pt.shape = 16,legend_pos = c(0.8,0.8),
+                       raster = FALSE, dpi = 300)
 }

@@ -184,6 +184,7 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
                             joint = FALSE, combine = TRUE, ...) {
   missing <- setdiff(features, rownames(data))
   if (length(missing)) leo_log("Features not found: ", paste(missing, collapse = ", "), level = "danger")
+  if (is.null(reduction)) reduction <- SeuratObject::DefaultDimReduc(data)
   if (!joint) {
     plots <- lapply(features, function(gene) {
       Nebulosa::plot_density(data,
@@ -196,7 +197,11 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
         ggplot2::coord_fixed() +
         ggplot2::theme_void()
     })
-    return(patchwork::wrap_plots(plots, ncol = ncol))
+    if (combine) {
+      return(patchwork::wrap_plots(plots, ncol = ncol))
+    } else {
+      return(plots)
+    }
   } else {
     leo.basic::leo_log("Plot joint density for {length(features)} features.")
     x <- Nebulosa::plot_density(data,
@@ -207,68 +212,273 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
                                 pal       = pal,
                                 size      = size,
                                 raster    = TRUE,
-                                combine   = F)
-    x <- lapply(x, function(y) y + ggplot2::coord_fixed() + ggplot2::theme_void())
+                                combine   = T)
+    # x <- lapply(x, function(y) y + ggplot2::coord_fixed() + ggplot2::theme_void())
     return(x)
   }
 }
 
-#' Highlight a cluster on a dimensional reduction (SeuratExtend)
+#' Highlight a cluster
+#'
+#' This function highlight a cluster on a dimensional reduction in NPG palette with highlight on top.
 #'
 #' @param obj Seurat object.
 #' @param cluster_id Value to highlight (in Idents(obj) or obj[[group.by]]).
 #' @param reduction Dimred name; default active reduction.
-#' @param group.by Meta column for membership; default uses Idents.
-#' @param highlight.col Color for highlighted cells.
-#' @param other.col Color for other cells (background).
+#' @param group.by Metadata column; NULL uses Idents.
+#' @param highlight.col Highlight color; NULL -> ggsci NPG red.
+#' @param other.col Background color (default "grey80").
 #' @param pt.size Point size.
-#' @param raster Logical or NULL; if NULL, auto-enable when >1e5 cells.
-#' @param dpi DPI when raster=TRUE (length 1 or 2).
+#' @param pt.shape Point shape (ggplot2 pch), default 16.
+#' @param raster Logical or NULL; NULL auto-enable when >1e5 cells.
+#' @param dpi Single numeric DPI for raster geoms (default 300).
+#' @param legend Show legend (default TRUE).
+#' @param legend_labels Named vector to rename legend entries; must include
+#'   c("highlight","other"). Defaults to c(highlight=<cluster_id>, other="other").
+#' @param legend_breaks Character vector to set legend order/visibility; accepts keys
+#'   in c("highlight","other") or their display labels in `legend_labels`.
+#'   Default c("highlight","other"). Use "highlight" only to hide "other".
+#' @param legend_pos Legend position (inside); NULL uses ggplot2 default (outside, right).
 #' @return ggplot object.
 #'
-#' @importFrom Seurat Idents NoAxes NoLegend
+#' @importFrom Seurat Embeddings Idents NoAxes
 #' @importFrom SeuratObject DefaultDimReduc
-#' @importFrom SeuratExtend DimPlot2
+#' @importFrom ggplot2 ggplot aes geom_point scale_color_manual theme_void theme
+#' @importFrom ggrastr geom_point_rast
+#' @importFrom ggsci pal_npg
 #' @importFrom leo.basic leo_log
-#'
 #' @examples
+#' # load demo data
 #' data("pbmc_small", package = "SeuratObject")
-#' p0 <- Seurat::DimPlot(pbmc_small, reduction = "pca", label = TRUE) + Seurat::NoLegend(); print(p0)
-#' p1 <- plot_highlight_cluster(pbmc_small,
-#'                              cluster_id = levels(Seurat::Idents(pbmc_small))[1],
-#'                              reduction = "pca", pt.size = 0.6, raster = FALSE, dpi = 300); print(p1)
+#'
+#' # 1) Basic: highlight first cluster on PCA (NPG red, other gray)
+#' plot_highlight_cluster(pbmc_small, cluster_id = levels(Seurat::Idents(pbmc_small))[1],
+#'                        reduction = "pca", pt.size = 0.5, pt.shape = 16, raster = FALSE, dpi = 300)
+#'
+#' # 2) Use UMAP (active reduction will auto-detect; here we set explicitly if available)
+#' pbmc_small <- Seurat::RunUMAP(pbmc_small, reduction = "pca", dims = 1:10)
+#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "umap",
+#'                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+#'
+#' # 3) Custom colors (manual override): highlight blue, background light gray
+#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+#'                        highlight.col = "#377EB8", other.col = "grey85",
+#'                        pt.size = 0.7, pt.shape = 16, raster = FALSE, dpi = 300)
+#'
+#' # 4) Hide legend entirely
+#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+#'                        legend = FALSE, pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+#'
+#' # 5) Rename legend entries & order them (show highlight then other)
+#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+#'                        legend_labels = c(highlight = "Yes", other = "No"),
+#'                        legend_breaks = c("highlight","other"),
+#'                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+#'
+#' # 6) Show only the highlight entry in legend (hide "other")
+#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+#'                        legend_labels = c(highlight = "Yes", other = "No"),
+#'                        legend_breaks = "highlight",
+#'                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+#'
+#' # 7) Big data style: force rasterization and set DPI
+#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
+#'                        raster = TRUE, dpi = 500, pt.size = 0.6, pt.shape = 16)
+#'
+#' # 8) Use a metadata column for grouping (e.g., Stage1), highlight "Control"
+#' #    (replace "Stage1" with your metadata column that contains "Control")
+#' pbmc_small$Stage1 <- ifelse(as.character(Seurat::Idents(pbmc_small)) == "0", "Control", "Other")
+#' plot_highlight_cluster(pbmc_small, cluster_id = "Control", group.by = "Stage1",
+#'                        reduction = "pca", pt.size = 0.6, pt.shape = 16,
+#'                        raster = FALSE, dpi = 300)
+#' # 9) Same as above but customize legend position (inside plot area, e.g. top-right)
+#' plot_highlight_cluster(pbmc_small, cluster_id = "Control", group.by = "Stage1",
+#'                        reduction = "pca", pt.size = 0.6, pt.shape = 16,legend_pos = c(0.8,0.8),
+#'                        raster = FALSE, dpi = 300)
 #' @export
-plot_highlight_cluster <- function(obj, cluster_id, reduction=NULL, group.by=NULL,
-                                   highlight.col="#DE2D26", other.col="grey80",
-                                   pt.size=0.6, raster=NULL, dpi=300, ...) {
-  # validate
+plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by = NULL,
+                                   highlight.col = NULL, other.col = "grey80",
+                                   pt.size = 0.6, pt.shape = 16,
+                                   raster = NULL, dpi = 300,
+                                   legend = TRUE, legend_labels = NULL, legend_breaks = NULL, legend_pos = NULL) {
   if (!is.null(group.by) && !group.by %in% colnames(obj@meta.data)) stop("`group.by` not found in meta.data.")
   if (is.null(reduction)) reduction <- SeuratObject::DefaultDimReduc(obj)
 
-  # membership & target cells
-  grp <- if (is.null(group.by)) Seurat::Idents(obj) else obj[[group.by, drop=TRUE]]
-  cells_hl <- names(grp)[as.character(grp) == as.character(cluster_id)]
-  if (length(cells_hl) == 0) stop("No cells match `cluster_id` under current grouping.")
-  raster_use <- if (is.null(raster)) ncol(obj) > 1e5 else raster
-  dpi_vec <- if (length(dpi) == 1) c(dpi, dpi) else as.numeric(dpi)
-  if (length(dpi_vec) != 2) stop("`dpi` must be length 1 or 2 numeric.")
+  groups <- if (is.null(group.by)) Seurat::Idents(obj) else obj[[group.by, drop = TRUE]]
+  cluster_label <- as.character(cluster_id)
+  cells_highlight <- names(groups)[as.character(groups) == cluster_label]
+  if (length(cells_highlight) == 0) stop("No cells match `cluster_id` under current grouping.")
 
-  # legend groups: "{cluster_id}" vs "other"
-  lab_vec <- ifelse(colnames(obj) %in% cells_hl, as.character(cluster_id), "other")
-  obj$`..hl..` <- factor(lab_vec, levels = c("other", as.character(cluster_id)))
-  on.exit({obj$`..hl..` <- NULL}, add = TRUE)
-  leo.basic::leo_log("highlight={cluster_id}; cells={length(cells_hl)}/{ncol(obj)}; reduction={reduction}; raster={raster_use}@{paste(dpi_vec, collapse='x')}dpi")
+  coords <- Seurat::Embeddings(obj, reduction)[, 1:2]
+  df <- data.frame(cell = rownames(coords), Dim1 = coords[, 1], Dim2 = coords[, 2], stringsAsFactors = FALSE)
+  df_other <- df[!df$cell %in% cells_highlight, , drop = FALSE]
+  df_high  <- df[ df$cell %in% cells_highlight, , drop = FALSE]
 
-  # colors
-  manual_cols <- c(other.col, highlight.col)
+  raster_use <- if (is.null(raster)) nrow(df) > 1e5 else raster
+  dpi_num <- as.numeric(dpi[1]); if (length(dpi_num) != 1 || is.na(dpi_num)) stop("`dpi` must be a single numeric.")
 
-  # plot (group.by gives legend; cells.highlight draws top layer)
-  p <- SeuratExtend::DimPlot2(
-    seu = obj, reduction = reduction, group.by = "..hl..",
-    cells.highlight = cells_hl, cols.highlight = highlight.col, sizes.highlight = pt.size,
-    cols = manual_cols, load.cols = FALSE,
-    pt.size = pt.size, raster = raster_use, raster.dpi = dpi_vec, theme = Seurat::NoAxes(), ...
-  )
+  if (is.null(highlight.col)) {
+    highlight.col <- if (requireNamespace("ggsci", quietly = TRUE)) ggsci::pal_npg("nrc")(10)[1] else "#DE2D26"
+  }
+  color_map <- c(other = other.col, highlight = highlight.col)
 
-  leo.basic::leo_log("Done: highlighted {cluster_id} on {reduction}.", level = "success"); p
+  if (is.null(legend_labels)) legend_labels <- c(highlight = cluster_label, other = "other")
+  if (!all(c("highlight","other") %in% names(legend_labels))) stop("`legend_labels` must be named with c('highlight','other').")
+
+  to_keys <- function(x) {
+    keys <- ifelse(x %in% names(legend_labels), x, names(legend_labels)[match(x, unname(legend_labels))])
+    keys[!is.na(keys) & keys %in% c("highlight","other")]
+  }
+  if (is.null(legend_breaks)) legend_breaks <- c("highlight","other")
+  legend_breaks <- to_keys(legend_breaks)
+
+  leo.basic::leo_log("Highlight --> <{cluster_id}>: {nrow(df_high)}/{nrow(df)} cells on {reduction}; raster={raster_use}@{dpi_num}dpi.")
+
+  p <- ggplot2::ggplot()
+  if (isTRUE(raster_use) && requireNamespace("ggrastr", quietly = TRUE)) {
+    p <- p +
+      ggrastr::geom_point_rast(data = df_other, ggplot2::aes(Dim1, Dim2, color = "other"),
+                               size = pt.size, shape = pt.shape, raster.dpi = dpi_num) +
+      ggrastr::geom_point_rast(data = df_high,  ggplot2::aes(Dim1, Dim2, color = "highlight"),
+                               size = pt.size, shape = pt.shape, raster.dpi = dpi_num)
+  } else {
+    if (isTRUE(raster_use)) leo.basic::leo_log("ggrastr not installed; fallback to vector points.", level = "warning")
+    p <- p +
+      ggplot2::geom_point(data = df_other, ggplot2::aes(Dim1, Dim2, color = "other"),
+                          size = pt.size, shape = pt.shape) +
+      ggplot2::geom_point(data = df_high,  ggplot2::aes(Dim1, Dim2, color = "highlight"),
+                          size = pt.size, shape = pt.shape)
+  }
+
+  p <- p + ggplot2::scale_color_manual(values = color_map, breaks = legend_breaks,
+                                       labels = unname(legend_labels[legend_breaks]), name = NULL) +
+    ggplot2::theme_void() + Seurat::NoAxes()
+
+  if (legend) {
+    p <- p + ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, shape = pt.shape)))
+  } else {
+    p <- p + ggplot2::theme(legend.position = "none")
+  }
+
+  if (!is.null(legend_pos) && legend) {
+    p <- p +
+      ggplot2::theme(legend.position = "inside",
+                     legend.position.inside = legend_pos,
+                     legend.background = ggplot2::element_rect(fill = "transparent"),
+                     legend.box.background = ggplot2::element_rect(color = "transparent")
+                     )
+  }
+
+  leo.basic::leo_log("Done.", level = "success")
+  return(p)
+}
+
+#' Different-effect-variable Beeswarm Plot
+#'
+#' Visualize continuous effect values (e.g., log2FC/beta/FC) across groups with a reference dashed line.
+#' Non-significant points (by p-value and/or deadband) are drawn in gray; significant points use a diverging palette.
+#'
+#' @param df data.frame/tibble containing grouping and effect columns
+#' @param group.by character, column name for grouping
+#' @param effect_col character, column name for effect (e.g., "logFC", "beta")
+#' @param p_col character or NULL, column name for p-values; if provided, p >= p_thresh is treated as non-significant
+#' @param p_thresh numeric, p-value threshold for significance (default 0.05)
+#' @param effect_thresh numeric, reference threshold for dashed line and color midpoint (default 0)
+#' @param pal_color named vector c(low, mid, high) for diverging palette (default c(low="#5062A7", mid="white", high="#BC4B59"))
+#' @param log2fc_limits NULL or numeric length-2 c(L, R); if set, color scale limits are c(effect_thresh-L, effect_thresh+R)
+#' @param insignificant_color character, color for non-significant/gray-zone points (default "gray80")
+#' @param deadband NULL or non-negative numeric; if set, |effect - effect_thresh| <= deadband will be gray
+#' @param flip_coord logical, flip coordinates to show groups vertically (default TRUE)
+#' @param point_size numeric, point size (default 1)
+#' @param seed NULL or integer, for reproducible quasirandom placement
+#' @param ... extra args passed to ggbeeswarm::geom_quasirandom()
+#'
+#' @return ggplot object
+#' @export
+#'
+#' @importFrom dplyr mutate %>% filter
+#' @importFrom ggplot2 ggplot aes geom_hline scale_color_gradient2 coord_flip labs theme_classic
+#' @importFrom ggplot2 guides xlab ylab
+#' @importFrom ggbeeswarm geom_quasirandom
+#' @importFrom stats na.omit
+#' @importFrom utils head
+#' @importFrom tibble tibble
+#'
+#' @examples
+#' # ---- Example 1: MiloR-like DA results ----
+#'  set.seed(1)
+#'  milo_df <- tibble::tibble(
+#'    Nhood = paste0("n", seq_len(1200)),
+#'    `Cell Type` = sample(paste0("CT", 1:6), 1200, replace = T),
+#'    logFC = rnorm(1200, sd = 1.2),
+#'    SpatialFDR = runif(1200)
+#'  )
+#'  # Visualize logFC by cell types; non-sig: SpatialFDR >= 0.1; dashed line at 0
+#'  p1 <- plot_dbee(milo_df, group.by = "Cell Type", effect_col = "logFC",
+#'                  p_col = "SpatialFDR", p_thresh = 0.1, effect_thresh = 0,
+#'                  log2fc_limits = c(-.1, .1), deadband = 0.1, point_size = 2, seed = 42)
+#'  print(p1)
+#'
+#'  # ---- Example 2: scRNA-seq DEG-like results ----
+#'  set.seed(123)
+#'  deg_df <- tibble::tibble(
+#'    gene = paste0("G", 1:900),
+#'    cluster = sample(paste0("C", 1:5), 900, replace = T),
+#'    log2FC = rnorm(900, mean = rep(seq(-0.4, 0.4, length.out = 5), each = 180), sd = 1),
+#'    p_val_adj = pmin(runif(900)^2, 1)
+#'  )
+#'  # Visualize log2FC by cluster; non-sig: p_val_adj >= 0.05; dashed line at 0
+#'  p2 <- plot_dbee(deg_df, group.by = "cluster", effect_col = "log2FC",
+#'                  p_col = "p_val_adj", p_thresh = 0.05, effect_thresh = 0,
+#'                  pal_color = c(low = "#2C7BB6", mid = "#FFFFBF", high = "#D7191C"), flip_coord = F,
+#'                  log2fc_limits = NULL, deadband = 0.05, point_size = 2, seed = 7)
+#'  print(p2)
+plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, effect_thresh = 0,
+                      pal_color = c(low = "#5062A7", mid = "white", high = "#BC4B59"),
+                      log2fc_limits = NULL, insignificant_color = "gray80", deadband = NULL,
+                      flip_coord = T, point_size = 1, seed = NULL, ...) {
+  # basic checks
+  if (!is.data.frame(df)) stop("`df` must be a data.frame / tibble.")
+  if (!group.by %in% names(df)) stop(glue::glue("{group.by} not found in `df`."))
+  if (!effect_col %in% names(df)) stop(glue::glue("{effect_col} not found in `df`."))
+  if (!all(c("low","mid","high") %in% names(pal_color))) stop("`pal_color` must have names: low, mid, high.")
+  if (!is.null(log2fc_limits)) if (length(log2fc_limits) != 2 || any(!is.finite(log2fc_limits))) stop("`log2fc_limits` must be NULL or numeric length-2.")
+  if (!is.null(p_col) && !p_col %in% names(df)) stop(glue::glue("{p_col} not found in `df`."))
+  if (!is.null(seed)) set.seed(seed)
+
+  # logging
+  n_rows <- nrow(df); n_groups <- length(unique(df[[group.by]]))
+  leo.basic::leo_log("plot_dbee(): start; rows={n_rows}, groups={n_groups}")
+
+  # data prep
+  df2 <- df %>% dplyr::mutate(group_by = .data[[group.by]], effect = as.numeric(.data[[effect_col]]))
+  if (!is.factor(df2$group_by)) df2$group_by <- factor(df2$group_by, levels = unique(df2$group_by))
+
+  # non-significant / gray-zone flags
+  in_gray <- rep(F, nrow(df2))
+  if (!is.null(p_col)) {
+    pvals <- suppressWarnings(as.numeric(df2[[p_col]]))
+    in_gray <- in_gray | (!is.na(pvals) & pvals >= p_thresh)
+  }
+  if (!is.null(deadband) && is.finite(deadband) && deadband >= 0) in_gray <- in_gray | (abs(df2$effect - effect_thresh) <= deadband)
+  df2$in_gray <- in_gray
+
+  # color scale limits
+  limits <- NULL
+  if (!is.null(log2fc_limits)) limits <- c(effect_thresh - log2fc_limits[1], effect_thresh + log2fc_limits[2])
+
+  # plot
+  p <- ggplot2::ggplot(df2, ggplot2::aes(x = group_by, y = effect))
+  if (any(df2$in_gray)) p <- p + ggbeeswarm::geom_quasirandom(data = df2[df2$in_gray, , drop = F],
+                                                              color = insignificant_color, size = point_size, ...)
+  p <- p + ggbeeswarm::geom_quasirandom(data = df2[!df2$in_gray, , drop = F],
+                                        ggplot2::aes(color = .data$effect), size = point_size, ...)
+  p <- p + ggplot2::geom_hline(yintercept = effect_thresh, linetype = "dashed")
+  p <- p + ggplot2::scale_color_gradient2(low = pal_color["low"], mid = pal_color["mid"], high = pal_color["high"],
+                                          midpoint = effect_thresh, limits = limits)
+  if (isTRUE(flip_coord)) p <- p + ggplot2::coord_flip()
+  p <- p + ggplot2::labs(x = group.by, y = effect_col, color = effect_col) + ggplot2::theme_classic()
+
+  leo.basic::leo_log("plot_dbee(): done ✓")
+  return(p)
 }

@@ -15,6 +15,7 @@ leo_milo_vis(
   cell_type = "cell_anno",
   mix_threshold = 0.7,
   bee_order = NULL,
+  bee_labs = c(x = "Cell Type", y = "Log Fold Change"),
   bee_add_box = T
 )
 }
@@ -39,10 +40,12 @@ leo_milo_vis(
 
 \item{bee_order}{Optional character vector specifying the display order of groups in the beeswarm plot.}
 
+\item{bee_labs}{Named character vector giving axis titles for the bee plot: (\code{c(x = "Cell Type", y = "Log Fold Change")}). If \code{NULL}, no axis labels are added.}
+
 \item{bee_add_box}{Logical. If \code{TRUE}, adds a boxplot to the beeswarm plot (default \code{TRUE}).}
 }
 \value{
-\code{list(nhood_graph, da_beeswarm)} – two \strong{ggplot} objects.
+1: UMAP of the DA; 2: bee plot of the DA results; 3: vertical bee plot; 4. DA results with cell type annotation (based on 'cell_type' params)
 }
 \description{
 Visualize MiloR DA results
