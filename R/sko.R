@@ -229,7 +229,7 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
     leo.basic::format_geneList()
 
   enrichment_res <- leo.basic::leo_enrich(ORA_gene, GSEA_geneList,
-                                          simplify =T, input = "SYMBOL",
+                                          simplify = TRUE, input = "SYMBOL",
                                           method = enrichment_method,
                                           background = enrichment_bg)
 

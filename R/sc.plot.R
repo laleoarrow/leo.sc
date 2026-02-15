@@ -178,7 +178,7 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 #' # Plot density for CD8A and CD8B in two columns
 #' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", ncol = 2)
 #' # plot joint density for CD3D and CD3E
-#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", joint = T, combine = F)
+#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", joint = TRUE, combine = FALSE)
 #' @export
 plot_gw_density <- function(data, features, reduction = "umap.harmony",
                             size = 0.2, pal = "magma", ncol = 2,
@@ -213,7 +213,7 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
                                 pal       = pal,
                                 size      = size,
                                 raster    = TRUE,
-                                combine   = T)
+                                combine   = TRUE)
     # x <- lapply(x, function(y) y + ggplot2::coord_fixed() + ggplot2::theme_void())
     return(x)
   }
@@ -431,7 +431,7 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 #'  # Visualize log2FC by cluster; non-sig: p_val_adj >= 0.05; dashed line at 0
 #'  p2 <- plot_dbee(deg_df, group.by = "cluster", effect_col = "log2FC",
 #'                  p_col = "p_val_adj", p_thresh = 0.05, effect_thresh = 0,
-#'                  pal_color = c(low = "#2C7BB6", mid = "#FFFFBF", high = "#D7191C"), flip_coord = F,
+#'                  pal_color = c(low = "#2C7BB6", mid = "#FFFFBF", high = "#D7191C"), flip_coord = FALSE,
 #'                  log2fc_limits = NULL, deadband = 0.05, point_size = 2, seed = 7)
 #'  print(p2)
 plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, effect_thresh = 0,
@@ -470,9 +470,9 @@ plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, e
 
   # plot
   p <- ggplot2::ggplot(df2, ggplot2::aes(x = group_by, y = effect))
-  if (any(df2$in_gray)) p <- p + ggbeeswarm::geom_quasirandom(data = df2[df2$in_gray, , drop = F],
+  if (any(df2$in_gray)) p <- p + ggbeeswarm::geom_quasirandom(data = df2[df2$in_gray, , drop = FALSE],
                                                               color = insignificant_color, size = point_size, ...)
-  p <- p + ggbeeswarm::geom_quasirandom(data = df2[!df2$in_gray, , drop = F],
+  p <- p + ggbeeswarm::geom_quasirandom(data = df2[!df2$in_gray, , drop = FALSE],
                                         ggplot2::aes(color = .data$effect), size = point_size, ...)
   p <- p + ggplot2::geom_hline(yintercept = effect_thresh, linetype = "dashed")
   p <- p + ggplot2::scale_color_gradient2(low = pal_color["low"], mid = pal_color["mid"], high = pal_color["high"],

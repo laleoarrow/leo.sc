@@ -148,7 +148,7 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
     dplyr::pull(cluster)
   leo.basic::leo_log("  Kept clusters (", length(keep_clusters), "): ", paste(keep_clusters, collapse = ", "))
   leo.basic::leo_log("  Dropped clusters (", length(drop_clusters), "): ", paste(drop_clusters, collapse = ", "))
-  leo.basic::leo_log(" The number of cell in each clusters"); print(sort(table(seurat_obj[[cluster_col]]), decreasing = T))
+  leo.basic::leo_log(" The number of cell in each clusters"); print(sort(table(seurat_obj[[cluster_col]]), decreasing = TRUE))
   return(keep_clusters)
 }
 
@@ -191,8 +191,8 @@ calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
     if (length(dim(expr)) != 2) {
       stop("`expr` must be 2-dimensional, but dim(expr) = ", paste(dim(expr), collapse = "x"), call. = FALSE)
     }
-    gene_count <- Matrix::colSums(expr > 0, na.rm = T)
-    cell_count <- Matrix::rowSums(expr > 0, na.rm = T)
+    gene_count <- Matrix::colSums(expr > 0, na.rm = TRUE)
+    cell_count <- Matrix::rowSums(expr > 0, na.rm = TRUE)
     keep_cells <- cell_count >= min.cells
     keep_genes <- gene_count >= min.genes
     expr[keep_cells, keep_genes, drop = FALSE]

@@ -16,7 +16,7 @@ leo_milo_vis(
   mix_threshold = 0.7,
   bee_order = NULL,
   bee_labs = c(x = "Cell Type", y = "Log Fold Change"),
-  bee_add_box = T
+  bee_add_box = TRUE
 )
 }
 \arguments{

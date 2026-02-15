@@ -75,7 +75,7 @@ ROIE <- function(crosstab){
 #' \dontrun{
 #' roe <- leo.ROIE(all, filter_col = 'lineage', filter_criteria = c('DC'), fontsize = 4,
 #'                 anno_col = 'cell_anno', group_col = 'Stage1', col_fun = "redblue",
-#'                 plot = T, plot_path = "./figure/sc/celltype_analysis/dc.roe.pdf",
+#'                 plot = TRUE, plot_path = "./figure/sc/celltype_analysis/dc.roe.pdf",
 #'                 heatmap_anno = "+++", border = NA, rect_gp = gpar(col = NA))
 #' head(roe)
 #' }
@@ -409,7 +409,7 @@ leo_milo_vis <- function(milo_obj, da_results, plot = c(1, 2),
                          mix_threshold  = 0.7,
                          bee_order      = NULL,
                          bee_labs       = c(x = "Cell Type", y = "Log Fold Change"),
-                         bee_add_box    = T) {
+                         bee_add_box    = TRUE) {
   t0 <- Sys.time(); leo.basic::leo_log("Visualizing Milo DA results...")
   plot <- as.vector(plot)
   layout <- toupper(layout)

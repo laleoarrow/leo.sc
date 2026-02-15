@@ -68,7 +68,7 @@ read_sc_data <- function(sc_path,
 #' @importFrom leo.basic leo_log
 #' @export
 seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c("classic","sctransform", "sctransform&regress"),
-                                                conserve.memory = F, cluster_resolution = 1.0, plot_dir = NULL, n_hv_gene = 10, verbose = TRUE){
+                                                conserve.memory = FALSE, cluster_resolution = 1.0, plot_dir = NULL, n_hv_gene = 10, verbose = TRUE){
   # normalize and make UMAP
   normalize_method <- match.arg(normalize_method)
   if (normalize_method == "classic"){
@@ -96,7 +96,7 @@ seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c
     top_genes <- head(VariableFeatures(seurat_obj), n_hv_gene)
     p <- Seurat::LabelPoints(plot = Seurat::VariableFeaturePlot(seurat_obj), points = top_genes, repel = TRUE, xnudge = 0, ynudge = 0)
     save_path <- file.path(plot_dir, "variable_features.pdf")
-    ggsave(save_path, plot = p, width = 8, height = 3, create.dir = T)
+    ggsave(save_path, plot = p, width = 8, height = 3, create.dir = TRUE)
     leo.basic::leo_log("vst_plot save to >>> {.path {save_path}}", level = "success", verbose = verbose)
   }
 
@@ -140,7 +140,7 @@ seurat_basic_qc <- function(seurat_obj,
   seurat_obj[["percent.HB"]] <- PercentageFeatureSet(seurat_obj, features = hb_genes_present)
 
   if (save_plot) {
-    p_before <- plot_qc(seurat_obj, out_path, prefix = "before_", save_plot = F) +
+    p_before <- plot_qc(seurat_obj, out_path, prefix = "before_", save_plot = FALSE) +
       plot_annotation(title = "Before QC", theme = theme(plot.title = element_text(color = "blue", face  = "bold",
                                                                                    size  = 18, hjust = 0.5)))
   }
@@ -154,7 +154,7 @@ seurat_basic_qc <- function(seurat_obj,
   leo.basic::leo_log("{filtered_cells} cells were filtered", level = "success", verbose = verbose)
 
   if (save_plot) {
-    p_after <- plot_qc(seurat_obj, out_path, prefix = "after_", save_plot = F) +
+    p_after <- plot_qc(seurat_obj, out_path, prefix = "after_", save_plot = FALSE) +
       plot_annotation(
         title = "After QC",
         theme = theme(
@@ -174,7 +174,7 @@ seurat_basic_qc <- function(seurat_obj,
       )
 
     save_path <- file.path(out_path, "qc_plot.pdf")
-    ggsave(save_path, plot = p, width = 18, height = 15, create.dir = T)
+    ggsave(save_path, plot = p, width = 18, height = 15, create.dir = TRUE)
     leo.basic::leo_log("QC plots save to >>> {.path {save_path}}", level = "success", verbose = verbose)
   }
   return(seurat_obj)
@@ -198,7 +198,7 @@ seurat_basic_qc <- function(seurat_obj,
 #' @importFrom patchwork plot_layout plot_annotation
 #' @importFrom leo.basic leo_log
 #' @export
-plot_qc <- function(seurat_obj, out_path, prefix = "before_", save_plot = T, verbose = TRUE, ...) {
+plot_qc <- function(seurat_obj, out_path, prefix = "before_", save_plot = TRUE, verbose = TRUE, ...) {
   p1 <- VlnPlot(seurat_obj, features = c("nFeature_RNA", "nCount_RNA", "percent.mt", "percent.HB"),
                 pt.size = 0, ncol = 4) &
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
@@ -215,7 +215,7 @@ plot_qc <- function(seurat_obj, out_path, prefix = "before_", save_plot = T, ver
 
   if (save_plot) {
     save <- file.path(out_path, paste0("QC_Plot_", prefix, "combined.pdf"))
-    ggsave(filename = save, plot = p3, width = 20, height = 10, create.dir=T)
+    ggsave(filename = save, plot = p3, width = 20, height = 10, create.dir=TRUE)
     leo.basic::leo_log("QC plots for {prefix} save to >>> {.path {save}}", level = "success", verbose = verbose)
   }
   return(p3)

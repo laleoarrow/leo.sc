@@ -7,7 +7,7 @@
 seurat_standard_normalize_and_scale(
   seurat_obj,
   normalize_method = c("classic", "sctransform", "sctransform&regress"),
-  conserve.memory = F,
+  conserve.memory = FALSE,
   cluster_resolution = 1,
   plot_dir = NULL,
   n_hv_gene = 10,

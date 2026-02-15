@@ -83,7 +83,7 @@ Non-significant points (by p-value and/or deadband) are drawn in gray; significa
  # Visualize log2FC by cluster; non-sig: p_val_adj >= 0.05; dashed line at 0
  p2 <- plot_dbee(deg_df, group.by = "cluster", effect_col = "log2FC",
                  p_col = "p_val_adj", p_thresh = 0.05, effect_thresh = 0,
-                 pal_color = c(low = "#2C7BB6", mid = "#FFFFBF", high = "#D7191C"), flip_coord = F,
+                 pal_color = c(low = "#2C7BB6", mid = "#FFFFBF", high = "#D7191C"), flip_coord = FALSE,
                  log2fc_limits = NULL, deadband = 0.05, point_size = 2, seed = 7)
  print(p2)
 }

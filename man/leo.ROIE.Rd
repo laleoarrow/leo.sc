@@ -62,7 +62,7 @@ optionally, save a heatmap.
 \dontrun{
 roe <- leo.ROIE(all, filter_col = 'lineage', filter_criteria = c('DC'), fontsize = 4,
                 anno_col = 'cell_anno', group_col = 'Stage1', col_fun = "redblue",
-                plot = T, plot_path = "./figure/sc/celltype_analysis/dc.roe.pdf",
+                plot = TRUE, plot_path = "./figure/sc/celltype_analysis/dc.roe.pdf",
                 heatmap_anno = "+++", border = NA, rect_gp = gpar(col = NA))
 head(roe)
 }

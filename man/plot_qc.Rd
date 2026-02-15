@@ -8,7 +8,7 @@ plot_qc(
   seurat_obj,
   out_path,
   prefix = "before_",
-  save_plot = T,
+  save_plot = TRUE,
   verbose = TRUE,
   ...
 )
