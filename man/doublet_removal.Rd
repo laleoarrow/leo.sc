@@ -27,7 +27,7 @@ doublet_removal(
 
 \item{nPCs_for_pK}{Integer vector. PCs to use for pK estimation. Default: 1:10.}
 
-\item{doublet_rate}{Numeric. Expected doublet rate (0–1). If NULL, looked up via \code{doublet_rate_dictionary}.}
+\item{doublet_rate}{Numeric. Expected doublet rate (0-1). If NULL, looked up via \code{doublet_rate_dictionary}.}
 
 \item{sct}{Logical. Whether data is SCTransformed. Default: FALSE.}
 

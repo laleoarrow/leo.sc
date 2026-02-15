@@ -20,7 +20,7 @@ plot_alluvial(
 
 \item{x_col}{Column mapped to the x-axis, default \code{"Group"}.}
 
-\item{weight_col}{Numeric column summed within each x–stratum, default \code{"Percentage"}.}
+\item{weight_col}{Numeric column summed within each x-stratum, default \code{"Percentage"}.}
 
 \item{stratum_col}{Column defining each stacked segment, default \code{"Cluster"}.}
 

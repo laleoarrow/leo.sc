@@ -1,7 +1,7 @@
 #' Format marker-gene lists for (bulk) upload
 #'
 #' Convert a Seurat **marker table** into plain-text lines of the form
-#' `cluster_<id>:geneA,geneB,…`, one line per cluster.
+#' `cluster_<id>:geneA,geneB,...`, one line per cluster.
 #'
 #' @param markers_tbl  A tibble / data.frame **containing at least** the columns
 #'   `cluster`, `gene`, and the column named in `order_by`.
@@ -46,7 +46,7 @@ format_markers_for_upload <- function(markers_tbl,
       )
       stop("`order_by` column is missing.", call. = FALSE)
     }
-    rlang::sym(order_by) # character → symbol
+    rlang::sym(order_by) # character -> symbol
   }
 
   txt <- markers_tbl |>
@@ -146,9 +146,9 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
   drop_clusters <- cell_counts %>%
     dplyr::filter(cell_count < cell_num_threshold) %>%
     dplyr::pull(cluster)
-  leo.basic::leo_log("✅ Kept clusters (", length(keep_clusters), "): ", paste(keep_clusters, collapse = ", "))
-  leo.basic::leo_log("❌ Dropped clusters (", length(drop_clusters), "): ", paste(drop_clusters, collapse = ", "))
-  leo.basic::leo_log("⬇️ The number of cell in each clusters️"); print(sort(table(seurat_obj[[cluster_col]]), decreasing = T))
+  leo.basic::leo_log("  Kept clusters (", length(keep_clusters), "): ", paste(keep_clusters, collapse = ", "))
+  leo.basic::leo_log("  Dropped clusters (", length(drop_clusters), "): ", paste(drop_clusters, collapse = ", "))
+  leo.basic::leo_log(" The number of cell in each clusters"); print(sort(table(seurat_obj[[cluster_col]]), decreasing = T))
   return(keep_clusters)
 }
 
@@ -344,7 +344,7 @@ score_signature <- function(sc_obj, signature_list, seed = 1) {
 #' @export
 #' @examples
 #' \dontrun{
-#' signature_category <- c("Naïve"                        = "Differentiation",
+#' signature_category <- c("Naive"                        = "Differentiation",
 #' "Activation/Effector function" = "Differentiation",
 #' "Exhaustion"                   = "Differentiation",
 #' "TCR Signaling"                = "Function",
@@ -447,7 +447,7 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
 #' @param ident2       Second cluster id (string)
 #' @param assay        Assay name, default "RNA"
 #' @param test.use     DE test, one of "wilcox","roc","MAST"; default "wilcox"
-#' @param pval.adj     Adjusted p‐value cutoff, default 0.05
+#' @param pval.adj     Adjusted p-value cutoff, default 0.05
 #' @param logfc        |log2FC| cutoff, default 0.5
 #' @param min.pct1     Minimum detection pct in marker group, default 0.5
 #' @param max.pct2     Maximum detection pct in other group, default 0.2

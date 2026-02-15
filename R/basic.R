@@ -228,7 +228,7 @@ plot_qc <- function(seurat_obj, out_path, prefix = "before_", save_plot = T, ver
 #' heterotypic doublets from a Seurat object.
 #'
 #' @param seurat_obj Seurat object (after normalization & PCA).
-#' @param doublet_rate Numeric. Expected doublet rate (0–1). If NULL, looked up via \code{doublet_rate_dictionary}.
+#' @param doublet_rate Numeric. Expected doublet rate (0-1). If NULL, looked up via \code{doublet_rate_dictionary}.
 #' @param PCs Integer vector. PCs to use. Default: 1:20.
 #' @param nPCs_for_pK Integer vector. PCs to use for pK estimation. Default: 1:10.
 #' @param pN Numeric. Proportion of artificial doublets. Default: 0.25.
@@ -326,7 +326,7 @@ doublet_removal <- function(seurat_obj=sc_matrix, out_path,
 #' Lookup expected doublet rate based on cells loaded
 #'
 #' Estimates the 10x Genomics multiplet rate (as a fraction) by finding the closest
-#' “# of Cells Loaded” bracket in the standard guideline table.
+#' "# of Cells Loaded" bracket in the standard guideline table.
 #' The ratios can refer to: https://github.com/chris-mcginnis-ucsf/DoubletFinder/issues/76
 #' We currently did not find any corresponding ratio for other single cell sequancing platforms.
 #'
@@ -334,7 +334,7 @@ doublet_removal <- function(seurat_obj=sc_matrix, out_path,
 #' @return Numeric. Expected multiplet (doublet) rate.
 #' @export
 doublet_rate_dictionary <- function(n_cells) {
-  # Named vector: cells loaded → multiplet rate
+  # Named vector: cells loaded -> multiplet rate
   dict <- c(
     `800`  = 0.004,
     `1600` = 0.008,
@@ -432,7 +432,7 @@ remove_unwant_hvg <- function(srt, pattern_list = list(mitochondrial_genes = "^M
 
   n_tot <- length(hv)
   n_rm  <- sum(rm_idx)
-  message(sprintf("remove_unwant_hvg(): removed %d / %d HVGs (%.1f%%) — kept %d (%.1f%%)",
+  message(sprintf("remove_unwant_hvg(): removed %d / %d HVGs (%.1f%%) - kept %d (%.1f%%)",
                    n_rm, n_tot, 100 * n_rm / n_tot,
                    n_tot - n_rm, 100 * (n_tot - n_rm) / n_tot))
   return(srt)

@@ -5,7 +5,7 @@
 #'
 #' @param df           A long-format data frame.
 #' @param x_col        Column mapped to the x-axis, default `"Group"`.
-#' @param weight_col   Numeric column summed within each x–stratum, default `"Percentage"`.
+#' @param weight_col   Numeric column summed within each x-stratum, default `"Percentage"`.
 #' @param stratum_col  Column defining each stacked segment, default `"Cluster"`.
 #' @param palette      Optional colour vector; unnamed = applied by order, named = matched by `stratum_col`.
 #' @param width        Numeric; width of each stratum (default 0.3).
@@ -20,6 +20,7 @@
 #' @importFrom ggalluvial geom_flow geom_stratum
 #' @importFrom scales percent_format
 #' @importFrom stats setNames
+#' @importFrom rlang sym
 #' @examples
 #' library(dplyr)
 #' example_data <- tibble(
@@ -55,7 +56,7 @@
 plot_alluvial <- function(df, x_col = "Group", weight_col = "Percentage",
                           stratum_col = "Cluster", width = 0.3, border_size = 0.5,
                           x_angle = 0, palette = NULL) {
-  df <- dplyr::mutate(df, !!x_col := factor(.data[[x_col]], levels = unique(.data[[x_col]])))
+  df <- dplyr::mutate(df, !!x_col := factor(!!rlang::sym(x_col), levels = unique(!!rlang::sym(x_col))))
 
   # adjust parameters
   fill_scale <- if (!is.null(palette)) {
@@ -70,10 +71,10 @@ plot_alluvial <- function(df, x_col = "Group", weight_col = "Percentage",
                list(h = .5, v = 1))
 
   p <- ggplot2::ggplot(df,
-    ggplot2::aes(x = .data[[x_col]], y = .data[[weight_col]],
-                 stratum  = .data[[stratum_col]],
-                 alluvium = .data[[stratum_col]],
-                 fill     = .data[[stratum_col]])) +
+    ggplot2::aes(x = !!rlang::sym(x_col), y = !!rlang::sym(weight_col),
+                 stratum  = !!rlang::sym(stratum_col),
+                 alluvium = !!rlang::sym(stratum_col),
+                 fill     = !!rlang::sym(stratum_col))) +
     ggalluvial::geom_flow(stat = "alluvium", lode.guidance = "frontback",
                           color = "grey70", width = width) +
     ggalluvial::geom_stratum(width = width, color = "black", size = border_size) +
@@ -479,6 +480,6 @@ plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, e
   if (isTRUE(flip_coord)) p <- p + ggplot2::coord_flip()
   p <- p + ggplot2::labs(x = group.by, y = effect_col, color = effect_col) + ggplot2::theme_classic()
 
-  leo.basic::leo_log("plot_dbee(): done ✓")
+  leo.basic::leo_log("plot_dbee(): done")
   return(p)
 }

@@ -14,7 +14,7 @@ Numeric. Expected multiplet (doublet) rate.
 }
 \description{
 Estimates the 10x Genomics multiplet rate (as a fraction) by finding the closest
-“# of Cells Loaded” bracket in the standard guideline table.
+"# of Cells Loaded" bracket in the standard guideline table.
 The ratios can refer to: https://github.com/chris-mcginnis-ucsf/DoubletFinder/issues/76
 We currently did not find any corresponding ratio for other single cell sequancing platforms.
 }

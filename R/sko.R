@@ -180,9 +180,8 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
   if (length(intersect(high_cells, low_cells)) > 0) {
     leo_log("High and low cells overlap, this is not expected! Check", level = "danger")
   }
-  # 若低表达数量不足，同步缩减两组 in case
   # if (length(low_cells) < n_extract) {
-  #   leo_log("Low group shortage: only {length(low_cells)} – down-scaling both groups.", level = "warning")
+  #   leo_log("Low group shortage: only {length(low_cells)} - down-scaling both groups.", level = "warning")
   #   n_extract <- length(low_cells); high_cells <- head(high_cells, n_extract)
   # }
 
@@ -213,7 +212,7 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
 
   up  <- sum(deg_results$avg_log2FC > 0 & deg_results$p_val_adj < 0.05)
   down<- sum(deg_results$avg_log2FC < 0 & deg_results$p_val_adj < 0.05)
-  leo_log("DEG done –-> more expressed in [{ident.1}]: {up}; more expressed in [{ident.2}]: {down}")
+  leo_log("DEG done --> more expressed in [{ident.1}]: {up}; more expressed in [{ident.2}]: {down}")
 
   # step 6: Enrichment analysis ------
   leo_log("Step 6: Enrichment analysis for {.emph {gene}} in {sko_mode} mode")

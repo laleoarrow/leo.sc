@@ -50,15 +50,15 @@
   # DPT = c("TYROBP"), # Not so sure
   DNT = c("TRDV2"), # `CD4-8-` TRDV2 can also be gdT's marker
   gdT =c("TRGV9"), # Integrating single-cell RNA and T cell/B cell receptor sequencing with mass cytometry reveals dynamic trajectories of human peripheral immune cells from birth to old age
-  MAIT = c("KLRB1"), # Also known as `T-mito`;KLRB1~CD161
-  # NKT = c("S1PR1", "IL32"), # Not so sure，perhaps just check NK markers
+  MAIT = c("KLRB1"), # Also known as T-mito; KLRB1~CD161
+  # NKT = c("S1PR1", "IL32"), # Not so sure, perhaps just check NK markers
   # NK markers below
   CD16_NK = c("FCGR3A","FCER1G","KLRF1"),
   CD56_NK = c("NCAM1","XCL1","CMC1")
 )
 .b_marker <- list(
   # CD20 (MS4A1) express in all B except for plasma B
-  # SDC1 = CD138 plasma B （接受抗原，可表达抗体）
+  # SDC1 = CD138 plasma B
   All = c('MS4A1','CD19','CD79A'),
   naive =c('IGHD','FCER2','TCL1A','IL4R'),
   memory=c('CD27','AIM2','TNFRSF13B'),
@@ -66,16 +66,16 @@
   plasma =c('IGHA1','IGHG1','JCHAIN','SDC1','CD38')
 )
 .myeloid_marker <- list(
-  # CD74 并非 “cDC 专属”，但在 过滤掉淋巴系后，它与 ITGAX组合能稳准快地把所有常规 DC
-  # FCGR3A/FCGR3B分别编码 CD16/CD32，CD16⁺单核细胞和非经典单核细胞的标志物
-  # CD83是DC activated的marker
+  # CD74 is not inclusive to cDC, but combination with ITGAX can identify all conventional DC
+  # FCGR3A/FCGR3B codes CD16/CD32, markers for CD16+ mono and non-classical mono
+  # CD83 is marker for activated DC
   All       = c("ITGAX","CD74","CD83"),
-  cDC1      = c("CLEC9A","XCR1","THBD","DNASE1L3"), # CD141⁺ cDC1
-  cDC2      = c("CD1C","FCER1A","CLEC10A"), # CD1c⁺ cDC2
+  cDC1      = c("CLEC9A","XCR1","THBD","DNASE1L3"), # CD141+ cDC1
+  cDC2      = c("CD1C","FCER1A","CLEC10A"), # CD1c+ cDC2
   DC3       = c("LAMP3","CCR7"), # refer to https://doi.org/10.1038/s41586-024-07698-1 (Nature 2024)
   pDC       = c("LILRA4","IL3RA","SPIB"), # plasmacytoid DC
-  Mono_CD14 = c("S100A8","S100A9","LYZ","VCAN"), # CD14⁺ classical mono
-  Mono_CD16 = c("FCGR3A","FCGR3B","MS4A7","LST1","LYPD2") # CD16⁺ non-classical mono
+  Mono_CD14 = c("S100A8","S100A9","LYZ","VCAN"), # CD14+ classical mono
+  Mono_CD16 = c("FCGR3A","FCGR3B","MS4A7","LST1","LYPD2") # CD16+ non-classical mono
 )
 .dc_inflammation_score <- list(
   dc_inflammation_score = c("BST1","CD163","F13A1","S100A9","S100A8",
@@ -109,7 +109,7 @@ leo.marker <- list(
   b_marker = list(
     data = .b_marker,
     name = "Curated B cell markers",
-    note = "Refer to 公众号: https://mp.weixin.qq.com/s/IAb-kMO3L-xCRX55j2VbqA"
+    note = "Refer to: https://mp.weixin.qq.com/s/IAb-kMO3L-xCRX55j2VbqA"
   ),
   myeloid_marker = list(
     data = .myeloid_marker,

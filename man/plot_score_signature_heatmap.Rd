@@ -49,7 +49,7 @@ This function generates a heatmap of signature scores. You should do this after 
 }
 \examples{
 \dontrun{
-signature_category <- c("Naïve"                        = "Differentiation",
+signature_category <- c("Naive"                        = "Differentiation",
 "Activation/Effector function" = "Differentiation",
 "Exhaustion"                   = "Differentiation",
 "TCR Signaling"                = "Function",

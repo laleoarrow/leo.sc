@@ -28,7 +28,7 @@ A length-one character vector
 }
 \description{
 Convert a Seurat \strong{marker table} into plain-text lines of the form
-\verb{cluster_<id>:geneA,geneB,…}, one line per cluster.
+\verb{cluster_<id>:geneA,geneB,...}, one line per cluster.
 }
 \examples{
 top10 <- data.frame(

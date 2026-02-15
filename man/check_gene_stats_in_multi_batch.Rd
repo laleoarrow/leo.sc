@@ -46,14 +46,14 @@ Batch-wise gene statistics checking, average expression, and common-gene subsett
 
 # Assume `cd4` is a Seurat object with metadata column "Batch"
 
-# Step 1 – inspect gene overlap/uniqueness across batches
+# Step 1 - inspect gene overlap/uniqueness across batches
 res <- check_gene_stats_in_multi_batch(cd4)  # returns stats, common, drop
 res$stats                                    # view the tibble summary
 
-# Step 2 – examine average expression of genes missing from ≥1 batch
+# Step 2 - examine average expression of genes missing from >=1 batch
 avg <- check_gene_avg_in_multi_batch(cd4, res$drop); head(avg); colSums(avg[-1])
 
-# Step 3 – subset the Seurat object to the intersection gene set
+# Step 3 - subset the Seurat object to the intersection gene set
 cd4 <- subset_common_gene_in_multi_batch(cd4, res$common)
 }
 }

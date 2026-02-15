@@ -112,7 +112,7 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
     if (identical(col_fun, "redblue")) col_fun <- circlize::colorRamp2(c(0, 1, 1.5, 2), c("#83CEF3", "white","#B45C5E", "#671A19")) # https://doi.org/10.1038/s41591-023-02371-y
 
     plot_path <- ifelse(is.null(plot_path), "./ROIE.pdf", plot_path)
-    leo.basic::leo_log("Save heatmap ➜ {.path {plot_path}}")
+    leo.basic::leo_log("Save heatmap -> {.path {plot_path}}")
     if (!dir.exists(dirname(plot_path))) dir.create(dirname(plot_path), recursive = TRUE)
 
     if (is.null(width)) width <- 1 + ncol(roe) * .2
@@ -133,7 +133,7 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
                        none  = NULL)
     if (heatmap_anno == "+++") {
       if (identical(sym_break, c(-Inf, .1, 1, 2, 3, Inf))) {
-        leo.basic::leo_log("Annotate the roe with: +++ (>3); ++ (2–3); + (1–2); +/- (0.1–1); - (<0.1)")
+        leo.basic::leo_log("Annotate the roe with: +++ (>3); ++ (2-3); + (1-2); +/- (0.1-1); - (<0.1)")
         leo.basic::leo_log("Refer to: https://www.sciencedirect.com/science/article/pii/S2352396424004341?#fig4")
       }
       if (identical(sym_break, c(-Inf, 0, 0.2, 0.8, 1, Inf))) {
@@ -277,13 +277,13 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
     all2 <- miloR::makeNhoods(all2, prop = prop, k = k, d = n_d, refined = TRUE, reduced_dims = reduced.dim); ec("Defined representative neighbourhoods on the KNN graph")
   }
   ec("Ploting neighbourhood size histogram --> As a rule of thumb we want to have an average neighbourhood size over {.emph 5 x N_samples = {5*length(unique(all@meta.data[[sample]]))}}", level = "success")
+  ec("Ploting neighbourhood size histogram -> As a rule of thumb we want to have an average neighbourhood size over {.emph 5 x N_samples = {5*length(unique(all@meta.data[[sample]]))}}", level = "success")
   df <- data.frame(nh_size = colSums(nhoods(all2)))
   ec("Your mean neighbourhood size is now {mean(df$nh_size)} and median is {median((df$nh_size))}")
   print(miloR::plotNhoodSizeHist(all2))
 
   ### manually adjust k and prop params ------------------------------------
   if (adjust_k_p_manual && interactive()) {
-    require(glue); require(utils)
     ec("------- Interactive tuning for k / prop -------")
     repeat {
       k_in <- readline(glue("current k = {k}; new k (blank to keep, 'exit' to stop): "))

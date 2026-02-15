@@ -28,7 +28,7 @@ locate_most_different_g_in_2_group(
 
 \item{test.use}{DE test, one of "wilcox","roc","MAST"; default "wilcox"}
 
-\item{pval.adj}{Adjusted p‐value cutoff, default 0.05}
+\item{pval.adj}{Adjusted p-value cutoff, default 0.05}
 
 \item{logfc}{|log2FC| cutoff, default 0.5}
 
