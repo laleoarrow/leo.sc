@@ -34,11 +34,9 @@ plot_dbee(
 
 \item{effect_thresh}{numeric, reference threshold for dashed line and color midpoint (default 0)}
 
-\item{pal_color}{named vector c(low, mid, high) for diverging palette
-(default c(low="#5062A7", mid="white", high="#BC4B59"))}
+\item{pal_color}{named vector c(low, mid, high) for diverging palette (default c(low="#5062A7", mid="white", high="#BC4B59"))}
 
-\item{log2fc_limits}{NULL or numeric length-2 c(L, R); if set, color scale limits
-are c(effect_thresh-L, effect_thresh+R)}
+\item{log2fc_limits}{NULL or numeric length-2 c(L, R); if set, color scale limits are c(effect_thresh-L, effect_thresh+R)}
 
 \item{insignificant_color}{character, color for non-significant/gray-zone points (default "gray80")}
 
