@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/github/actions/workflow/status/laleoarrow/leo.sc/R-CMD-check.yaml?style=for-the-badge&label=R-CMD-check&logo=github" />
   </a>
   <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental">
-    <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge&logo=jekyll&logoColor=white" />
   </a>
 </p>
 
