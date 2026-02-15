@@ -11,7 +11,7 @@ leo.ROIE(
   anno_col = "cell_anno",
   group_col = "Stage1",
   group_col_order = NULL,
-  plot = F,
+  plot = FALSE,
   plot_path = NULL,
   col_fun = NULL,
   width = NULL,

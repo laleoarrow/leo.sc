@@ -13,7 +13,7 @@ leo.milo(
   reduced.dim = "harmony",
   k = 50,
   prop = 0.1,
-  adjust_k_p_manual = F,
+  adjust_k_p_manual = FALSE,
   contrast_list = NULL,
   batch = NULL,
   cell_type = NULL

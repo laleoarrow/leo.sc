@@ -15,7 +15,7 @@ plot_dbee(
   log2fc_limits = NULL,
   insignificant_color = "gray80",
   deadband = NULL,
-  flip_coord = T,
+  flip_coord = TRUE,
   point_size = 1,
   seed = NULL,
   ...
