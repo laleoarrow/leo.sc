@@ -140,7 +140,7 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
   dat <- dplyr::mutate(dat, Percentage = 100 * n / sum(n), .after = n)
   dat <- dplyr::ungroup(dat)
 
-  p <- plot_alluvial(meta, x_col = group_col,
+  p <- plot_alluvial(dat, x_col = group_col,
                      weight_col  = "Percentage",
                      stratum_col = cluster_col, ...)
 

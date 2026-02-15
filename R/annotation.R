@@ -239,7 +239,6 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
         tmp.matr <- expr[, index1]
         if (isTRUE(filter)) {
           print("Filtering out low-abundance genes and low-quality cells")
-
           tmp.matr <- ROGUE::matr.filter(tmp.matr, min.cells = min.cells,
                                   min.genes = min.genes)
         }
