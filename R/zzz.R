@@ -11,10 +11,10 @@
     "  \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u2550\u2550\u2550\u2550\u255D          \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  "
   )
 
-  # Function to calculate visual/physical width (Unicode=2, ASCII=1)
+  # Use display width instead of raw codepoint range.
+  # This keeps box-drawing symbols aligned after Unicode escape conversion.
   get_vw <- function(x) {
-    chars <- strsplit(x, "")[[1]]
-    sum(vapply(chars, function(c) if (utf8ToInt(c) > 127) 2 else 1, numeric(1)))
+    nchar(x, type = "width")
   }
   
   logo_vws <- vapply(logo_core, get_vw, numeric(1))
@@ -73,7 +73,7 @@
   
   vapply(seq_along(ext_lines), function(r) {
     line <- ext_lines[r]
-    chars <- strsplit(line, "")[[1]]
+    chars <- strsplit(line, "", fixed = TRUE)[[1]]
     
     # Render left glow
     left_aura <- vapply(1:h_p, function(c_idx) {
@@ -87,7 +87,7 @@
     # Render core content with physical pos mapping
     curr_vw_pos <- 1
     rendered_core <- vapply(chars, function(char) {
-      cw <- if (utf8ToInt(char) > 127) 2 else 1
+      cw <- nchar(char, type = "width")
       dist_y <- max(0, v_p + 1 - r, r - (rows - v_p))
       bg_rgb <- if (dist_y == 0) c(0,0,0) else {
         w <- (dist_y / max_dist)^1.4
