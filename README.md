@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/github/actions/workflow/status/r-universe/laleoarrow/build.yml?branch=master&label=R-universe&style=for-the-badge&logo=r&logoColor=white" />
   </a>
   <a href="https://github.com/laleoarrow/leo.sc/actions/workflows/R-CMD-check.yaml">
-    <img src="https://img.shields.io/github/actions/workflow/status/laleoarrow/leo.sc/R-CMD-check.yaml?style=for-the-badge&label=R-CMD-check&logo=github" />
+    <img src="https://img.shields.io/github/actions/workflow/status/laleoarrow/leo.sc/R-CMD-check.yaml?branch=main&label=R-CMD-check&style=for-the-badge&logo=github" />
   </a>
   <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental">
     <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge&logo=jekyll&logoColor=white" />
@@ -27,11 +27,18 @@
   </a>
 </p>
 
-> Single cell analysis space for LEO universe
+<br>
+
 <p align="center">
-  <img src="image-1.png" width="800px" />
+  <img src="image-1.png" width="90%" />
+  <br>
+  <em>Single cell analysis space for LEO universe</em>
 </p>
+
+<br>
+
 ### Introduction
+
 **Layered Exploratory Omics** (LEO) is a tool specifically designed for deep analysis of genomic data. `leo.sc` focuses on single-cell analysis, providing specialized functions for data exploration and visualization. It employs a multi-layered exploratory approach to help researchers (**mostly myself**) uncover the complex biological information hidden behind their data. Combining cutting-edge statistical and computational methodologies, LEO offers a user-friendly interface and powerful data-processing capabilities, enabling users ranging from beginners to advanced to effectively explore and analyze their omics data.
 
 ### Development Status
