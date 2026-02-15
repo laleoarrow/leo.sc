@@ -172,7 +172,7 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
 #' @param return Character. If `"plot"` (default), returns a list of plot and data; otherwise returns raw Augur object
 #'
 #' @import Seurat
-#' @importFrom ggplot2 aes geom_point geom_segment scale_color_manual theme element_text element_blank
+#' @importFrom ggplot2 aes geom_point geom_segment scale_color_manual theme element_text element_blank element_line
 #' @importFrom leo.basic leo_log
 #'
 #' @return If `return = "plot"`, a list with `plot` (ggplot object) and `dat` (Augur result); else, Augur result only
@@ -248,7 +248,8 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
 #' }
 #' @importFrom miloR Milo buildGraph makeNhoods plotNhoodSizeHist countCells calcNhoodDistance testNhoods buildNhoodGraph
 #' @importFrom dplyr distinct
-#' @importFrom SingleCellExperiment reducedDimNames
+#' @importFrom SingleCellExperiment reducedDimNames reducedDim
+#' @importFrom glue glue
 #' @import Seurat
 #' @export
 leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",

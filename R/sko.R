@@ -193,7 +193,7 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
       rownames(.) %in% low_cells  ~ "low",
       T ~ "other"))
   all2 <- subset_srt(all2, "sko_group", c("high", "low"))
-  all2@meta.data$sko_group <- factor(all2@meta.data$sko_group, level = c("high", "low"))
+  all2@meta.data$sko_group <- factor(all2@meta.data$sko_group, levels = c("high", "low"))
   Seurat::Idents(all2) <- all2@meta.data$sko_group
 
   # Ensure ident.1 (log2FC>1) stands for the group of interests.

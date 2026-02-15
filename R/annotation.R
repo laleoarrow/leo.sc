@@ -169,7 +169,7 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
 #' @return An object returned by `rogue()`, invisibly.
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom Matrix colSums rowSums
-#' @importFrom ROGUE SE_fun SEplot CalculateRogue rogue rogue.boxplot matr.filter ent.toli
+#' @importFrom ROGUE SE_fun SEplot CalculateRogue rogue rogue.boxplot
 #' @export
 calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
                       min.cells = 10, min.genes = 10,
@@ -239,14 +239,14 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
         tmp.matr <- expr[, index1]
         if (isTRUE(filter)) {
           print("Filtering out low-abundance genes and low-quality cells")
-          tmp.matr <- matr.filter(tmp.matr, min.cells = min.cells,
+          tmp.matr <- ROGUE:::matr.filter(tmp.matr, min.cells = min.cells,
                                   min.genes = min.genes)
         }
         else {
           tmp.matr <- tmp.matr
         }
         tmp.res <- SE_fun(tmp.matr, span = span, r = r)
-        tmp.res <- ent.toli(tmp.res, tmp.matr, span = span,
+        tmp.res <- ROGUE:::ent.toli(tmp.res, tmp.matr, span = span,
                             r = r, n = remove.outlier.n)
         rogue[i] <- CalculateRogue(tmp.res, platform = platform,
                                    k = k)

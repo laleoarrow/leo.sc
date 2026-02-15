@@ -194,7 +194,7 @@ seurat_basic_qc <- function(seurat_obj,
 #' @return Invisible NULL.
 #'
 #' @importFrom Seurat VlnPlot FeatureScatter
-#' @importFrom ggplot2 ggsave theme
+#' @importFrom ggplot2 ggsave theme ggtitle guide_legend
 #' @importFrom patchwork plot_layout plot_annotation
 #' @importFrom leo.basic leo_log
 #' @export
