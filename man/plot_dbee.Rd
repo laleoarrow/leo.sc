@@ -62,7 +62,7 @@ Non-significant points (by p-value and/or deadband) are drawn in gray; significa
  set.seed(1)
  milo_df <- tibble::tibble(
    Nhood = paste0("n", seq_len(1200)),
-   `Cell Type` = sample(paste0("CT", 1:6), 1200, replace = T),
+   `Cell Type` = sample(paste0("CT", 1:6), 1200, replace = TRUE),
    logFC = rnorm(1200, sd = 1.2),
    SpatialFDR = runif(1200)
  )
@@ -76,7 +76,7 @@ Non-significant points (by p-value and/or deadband) are drawn in gray; significa
  set.seed(123)
  deg_df <- tibble::tibble(
    gene = paste0("G", 1:900),
-   cluster = sample(paste0("C", 1:5), 900, replace = T),
+   cluster = sample(paste0("C", 1:5), 900, replace = TRUE),
    log2FC = rnorm(900, mean = rep(seq(-0.4, 0.4, length.out = 5), each = 180), sd = 1),
    p_val_adj = pmin(runif(900)^2, 1)
  )
