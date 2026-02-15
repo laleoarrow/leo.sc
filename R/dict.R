@@ -91,7 +91,7 @@
 #' @format List with two elements: \code{$data}, \code{$source}.
 #' @export
 #' @examples
-#' t_nk_marker <- leo.marker$t_nk_marker$data
+#' leo.marker$t_nk_marker$data # t_nk_marker
 leo.marker <- list(
   t_nk_marker = list(
     data = .t_nk_marker,

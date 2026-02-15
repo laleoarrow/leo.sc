@@ -67,7 +67,7 @@ format_markers_for_upload <- function(markers_tbl,
                      level = "info", verbose = verbose)
   leo.basic::leo_log("Backup website: http://biocc.hrbmu.edu.cn/ACT/index.jsp",
                      level = "info", verbose = verbose)
-  leo.basic::leo_log("Marker list formatted [v]", level = "success", verbose = verbose)
+  leo.basic::leo_log("Marker list formatted", level = "success", verbose = verbose)
   return(txt)
 }
 

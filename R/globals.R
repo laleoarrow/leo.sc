@@ -1,7 +1,7 @@
 #' @importFrom utils globalVariables
 utils::globalVariables(c(
   # sko.R
-  "cell_type", "sko_gene", "avg_log2FC", "cell", "expr", "total", "max_keep", "n", "pct",
+  "cell_type", "sko_gene", "avg_log2FC", "cell", "cluster", "expr", "total", "max_keep", "n", "pct",
   "ident.1", "ident.2", "p_val_adj",
 
   # basic.R / plot_qc
