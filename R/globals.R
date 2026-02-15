@@ -14,5 +14,13 @@ utils::globalVariables(c(
   "cell_anno_color",
 
   # other possible reporting
-  "Var1", "Freq"
+  "Var1", "Freq",
+  
+  # added to fix check
+  "Dim1", "Dim2",
+  ":=", ".",
+  "Cell Type", "cell_count", "CellID", "colData", "ct",
+  "effect", "gene", "nhoods",
+  "pct.1", "pct.2", "s",
+  "sc_matrix", "n_rm", "n_tot"
 ))

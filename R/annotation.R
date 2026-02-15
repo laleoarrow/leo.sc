@@ -60,7 +60,7 @@ format_markers_for_upload <- function(markers_tbl,
       ),
       .groups = "drop"
     ) |>
-    dplyr::pull(line) |>
+    dplyr::pull("line") |>
     paste(collapse = "\n")
 
   leo.basic::leo_log("Website for uploading: http://xteam.xbio.top/ACT/index.jsp",
@@ -169,8 +169,7 @@ filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
 #' @return An object returned by `rogue()`, invisibly.
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom Matrix colSums rowSums
-#' @importFrom ROGUE SE_fun SEplot CalculateRogue rogue rogue.boxplot
-#' @importFrom leo.basic leo_log
+#' @importFrom ROGUE SE_fun SEplot CalculateRogue rogue rogue.boxplot matr.filter ent.toli
 #' @export
 calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
                       min.cells = 10, min.genes = 10,
@@ -340,7 +339,7 @@ score_signature <- function(sc_obj, signature_list, seed = 1) {
 #' @importFrom matrixStats rowSds colSds
 #' @importFrom grDevices adjustcolor hcl.colors
 #' @importFrom grid unit gpar
-#' @importFrom ComplexHeatmap Heatmap rowAnnotation Legend draw
+#' @importFrom ComplexHeatmap Heatmap rowAnnotation Legend draw anno_block
 #' @importFrom circlize colorRamp2
 #' @export
 #' @examples
@@ -405,11 +404,11 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
     }
   }
 
-  rowname_col <- signature_category[rownames(mat)]
-  rowname_colors <- grDevices::adjustcolor(signature_category_color[rowname_col], alpha.f = .5)
+  rowname_col <- signature_cat[rownames(mat)]
+  rowname_colors <- grDevices::adjustcolor(signature_cat_col[rowname_col], alpha.f = .5)
   names(rowname_colors) <- rownames(mat)
 
-  left_ha <- rowAnnotation(Category = anno_block(gp = gpar(fill = signature_category_color)),
+  left_ha <- rowAnnotation(Category = anno_block(gp = gpar(fill = signature_cat_col)),
                            show_annotation_name = FALSE,
                            width = unit(4, "mm"))
 
@@ -419,8 +418,8 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
                 rect_gp = gpar(col = "black", lwd = 1),
                 cluster_rows = FALSE, cluster_columns = TRUE,
                 left_annotation = left_ha,
-                row_split = factor(signature_category[rownames(mat)],
-                                   levels = names(signature_category_color)),
+                row_split = factor(signature_cat[rownames(mat)],
+                                   levels = names(signature_cat_col)),
                 row_gap = unit(3, "pt"),
                 row_title_gp = gpar(fontsize = 0),
                 row_names_gp = gpar(col = "black", fontsize = 10, lwd = 0, lineheight = 0,
