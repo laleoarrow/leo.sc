@@ -402,8 +402,10 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 #' @param p_col character or NULL, column name for p-values; if provided, p >= p_thresh is treated as non-significant
 #' @param p_thresh numeric, p-value threshold for significance (default 0.05)
 #' @param effect_thresh numeric, reference threshold for dashed line and color midpoint (default 0)
-#' @param pal_color named vector c(low, mid, high) for diverging palette (default c(low="#5062A7", mid="white", high="#BC4B59"))
-#' @param log2fc_limits NULL or numeric length-2 c(L, R); if set, color scale limits are c(effect_thresh-L, effect_thresh+R)
+#' @param pal_color named vector c(low, mid, high) for diverging palette
+#'   (default c(low="#5062A7", mid="white", high="#BC4B59"))
+#' @param log2fc_limits NULL or numeric length-2 c(L, R); if set, color scale limits
+#'   are c(effect_thresh-L, effect_thresh+R)
 #' @param insignificant_color character, color for non-significant/gray-zone points (default "gray80")
 #' @param deadband NULL or non-negative numeric; if set, |effect - effect_thresh| <= deadband will be gray
 #' @param flip_coord logical, flip coordinates to show groups vertically (default TRUE)
@@ -473,12 +475,14 @@ plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, e
   if (!is.factor(df2$group_by)) df2$group_by <- factor(df2$group_by, levels = unique(df2$group_by))
 
   # non-significant / gray-zone flags
-  in_gray <- rep(F, nrow(df2))
+  in_gray <- rep(FALSE, nrow(df2))
   if (!is.null(p_col)) {
     pvals <- suppressWarnings(as.numeric(df2[[p_col]]))
     in_gray <- in_gray | (!is.na(pvals) & pvals >= p_thresh)
   }
-  if (!is.null(deadband) && is.finite(deadband) && deadband >= 0) in_gray <- in_gray | (abs(df2$effect - effect_thresh) <= deadband)
+  if (!is.null(deadband) && is.finite(deadband) && deadband >= 0) {
+    in_gray <- in_gray | (abs(df2$effect - effect_thresh) <= deadband)
+  }
   df2$in_gray <- in_gray
 
   # color scale limits
