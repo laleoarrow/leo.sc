@@ -45,7 +45,7 @@ plot_highlight_cluster(
 \item{legend}{Show legend (default TRUE).}
 
 \item{legend_labels}{Named vector to rename legend entries; must include
-c("highlight","other"). Defaults to c(highlight=<cluster_id>, other="other").}
+c("highlight","other"). Defaults to c(highlight=cluster_id, other="other").}
 
 \item{legend_breaks}{Character vector to set legend order/visibility; accepts keys
 in c("highlight","other") or their display labels in \code{legend_labels}.

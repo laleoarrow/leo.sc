@@ -21,6 +21,8 @@ subset_common_gene_in_multi_batch(srt, common_genes, assay = "RNA")
 
 \item{genes}{Character vector of genes (only for \code{check_gene_avg_in_multi_batch}).}
 
+\item{common_genes}{Character vector of shared genes (only for \code{subset_common_gene_in_multi_batch}).}
+
 \item{assay}{Assay to subset. Default \code{"RNA"}.}
 }
 \value{

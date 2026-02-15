@@ -6,8 +6,8 @@
 \usage{
 locate_most_different_g_in_2_group(
   sc_obj,
-  ident.1,
-  ident.2,
+  ident1,
+  ident2,
   assay = "RNA",
   test.use = "wilcox",
   pval.adj = 0.05,
@@ -19,6 +19,10 @@ locate_most_different_g_in_2_group(
 }
 \arguments{
 \item{sc_obj}{Seurat object}
+
+\item{ident1}{First cluster id (string)}
+
+\item{ident2}{Second cluster id (string)}
 
 \item{assay}{Assay name, default "RNA"}
 
@@ -33,10 +37,6 @@ locate_most_different_g_in_2_group(
 \item{max.pct2}{Maximum detection pct in other group, default 0.2}
 
 \item{return_top_n}{Number of top markers to return for each group, default 1.}
-
-\item{ident1}{First cluster id (string)}
-
-\item{ident2}{Second cluster id (string)}
 }
 \value{
 named vector c(marker1,marker2)

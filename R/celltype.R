@@ -108,7 +108,6 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
   roe <- roe[, group_col_order]
 
   if (plot) {
-    require(ComplexHeatmap);require(circlize)
     if (is.null(col_fun)) col_fun <- circlize::colorRamp2(c(0, 1, 1.5, 2), c("#fffde7", "#ffe0b2","#ff9800", "#e65100"))
     if (identical(col_fun, "redblue")) col_fun <- circlize::colorRamp2(c(0, 1, 1.5, 2), c("#83CEF3", "white","#B45C5E", "#671A19")) # https://doi.org/10.1038/s41591-023-02371-y
 
@@ -138,7 +137,7 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
         leo.basic::leo_log("Refer to: https://www.sciencedirect.com/science/article/pii/S2352396424004341?#fig4")
       }
       if (identical(sym_break, c(-Inf, 0, 0.2, 0.8, 1, Inf))) {
-        leo.basic::leo_log("Annotate the roe with: +++, Ro/e > 1; ++, 0.8 < Ro/e ≤ 1; +, 0.2 ≤ Ro/e ≤ 0.8; ±, 0 < Ro/e < 0.2; −, Ro/e = 0")
+        leo.basic::leo_log("Annotate the roe with: +++, Ro/e > 1; ++, 0.8 < Ro/e <= 1; +, 0.2 <= Ro/e <= 0.8; +/-, 0 < Ro/e < 0.2; -, Ro/e = 0")
         leo.basic::leo_log("Refer to: ")
       }
     }
@@ -261,7 +260,6 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
                      batch = NULL,
                      cell_type = NULL) {
   ec <- leo.basic::leo_log; ec("Tutorial: https://www.bioconductor.org/packages/devel/bioc/vignettes/miloR/inst/doc/milo_gastrulation.html?")
-  require(miloR); require(SingleCellExperiment)
   if (!is.character(all$orig.ident)) all$orig.ident <- as.character(all$orig.ident)
   if (!identical(levels(all@meta.data[[group]]), group_level)) all@meta.data[[group]] <- factor(all@meta.data[[group]], levels = group_level)
   reduced.dim <- toupper(reduced.dim)

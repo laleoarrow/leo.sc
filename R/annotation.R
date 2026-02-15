@@ -377,7 +377,6 @@ score_signature <- function(sc_obj, signature_list, seed = 1) {
 plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_prefix = NULL,
                                          scale = "none", signature_cat, signature_cat_col, heatmap_title = NULL,
                                          save_path = "./signature.pdf", width = 6, height = 6){
-  require(ComplexHeatmap); require(circlize)
 
   mat <- sc_obj@meta.data[, names(signature_list)] %>%
     mutate(cluster = sc_obj@meta.data[[group]]) %>%
@@ -462,25 +461,25 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
 #' \dontrun{
 #' tops <- locate_most_different_g_in_2_group(pbmc, "seurat_clusters", "4","5")
 #' }
-locate_most_different_g_in_2_group <- function(sc_obj, ident.1, ident.2, assay = "RNA",
+locate_most_different_g_in_2_group <- function(sc_obj, ident1, ident2, assay = "RNA",
                                                test.use = "wilcox", pval.adj = 0.05,
                                                logfc = 0.5, min.pct1 = 0.5, max.pct2 = 0.2,
                                                return_top_n = 1) {
   DefaultAssay(sc_obj) <- assay
-  deg <- FindMarkers(sc_obj, ident.1 = ident.1, ident.2 = ident.2,
+  deg <- FindMarkers(sc_obj, ident.1 = ident1, ident.2 = ident2,
                      assay = assay, test.use = test.use,
                      logfc.threshold = logfc, min.pct = min.pct1)
   # marker for ident.1
   m1 <- deg[ deg$p_val_adj < pval.adj & abs(deg$avg_log2FC) > logfc &
                deg$pct.1 >= min.pct1 & deg$pct.2 <= max.pct2, ]
-  leo.basic::leo_log("Found ", nrow(m1), " markers for ident.1: ", ident.1)
-  # marker for ident.2
+  leo.basic::leo_log("Found ", nrow(m1), " markers for ident1: ", ident1)
+  # marker for ident2
   m2 <- deg[ deg$p_val_adj < pval.adj & abs(deg$avg_log2FC) > logfc &
                deg$pct.2 >= min.pct1 & deg$pct.1 <= max.pct2, ]
-  leo.basic::leo_log("Found ", nrow(m2), " markers for ident.2: ", ident.2)
+  leo.basic::leo_log("Found ", nrow(m2), " markers for ident2: ", ident2)
 
   if (nrow(m1) == 0 && nrow(m2) == 0) {
-    leo.basic::leo_log("No markers found for either ident.1 or ident.2.", level = "warning")
+    leo.basic::leo_log("No markers found for either ident1 or ident2.", level = "warning")
     leo.basic::leo_log("Returning the DEG for you to mannually check", level = "warning")
     return(deg)
   }
