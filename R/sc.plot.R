@@ -161,6 +161,7 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 #' @param size Size of the geom to be plotted (e.g. point size)
 #' @param pal Choose from Nebulosa's palettes, e.g. "magma", "inferno", "plasma", "viridis", "cividis".
 #' @param combine Passed to \code{Nebulosa::plot_density()}.
+#' @param adjustment Numeric value to adjust the bandwidth of the kernel density estimation (default 1).
 #' @param ... Additional arguments passed to \code{Nebulosa::plot_density()}.
 #'
 #' @return A patchwork object arranging density plots in a grid.
@@ -178,7 +179,8 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 #' # Plot density for CD8A and CD8B in two columns
 #' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", ncol = 2)
 #' # plot joint density for CD3D and CD3E
-#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", joint = TRUE, combine = FALSE)
+#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne",
+#'                 joint = TRUE, combine = FALSE)
 #' @export
 plot_gw_density <- function(data, features, reduction = "umap.harmony",
                             size = 0.2, pal = "magma", ncol = 2,
@@ -200,7 +202,7 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
     leo.basic::leo_log("Nebulosa not installed. Using basic ggplot2 fallback.", level = "warning")
     use_fallback <- TRUE
   }
-
+  
   # Try running Nebulosa::plot_density
   if (!use_fallback) {
     tryCatch({
@@ -243,7 +245,7 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
       make_plot <- function(feat_name, expr_vals) {
         df <- data.frame(coords, Expression = expr_vals)
         p <- ggplot2::ggplot(df, ggplot2::aes(x = Dim1, y = Dim2)) +
-          ggplot2::stat_density_2d(ggplot2::aes(fill = ggplot2::after_stat(density), weight = Expression),
+          ggplot2::stat_density_2d(ggplot2::aes(fill = ggplot2::after_stat(density), weight = .data$Expression),
                                    geom = "raster", contour = FALSE, adjust = adjustment, n = 200) +
           ggplot2::scale_fill_viridis_c(option = pal) +
           ggplot2::coord_fixed() +
@@ -307,9 +309,11 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
 #'                        reduction = "pca", pt.size = 0.5, pt.shape = 16, raster = FALSE, dpi = 300)
 #'
 #' # 2) Use UMAP (active reduction will auto-detect; here we set explicitly if available)
+#' \donttest{
 #' pbmc_small <- Seurat::RunUMAP(pbmc_small, reduction = "pca", dims = 1:10)
 #' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "umap",
 #'                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+#' }
 #'
 #' # 3) Custom colors (manual override): highlight blue, background light gray
 #' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",

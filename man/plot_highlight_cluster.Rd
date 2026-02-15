@@ -68,9 +68,11 @@ plot_highlight_cluster(pbmc_small, cluster_id = levels(Seurat::Idents(pbmc_small
                        reduction = "pca", pt.size = 0.5, pt.shape = 16, raster = FALSE, dpi = 300)
 
 # 2) Use UMAP (active reduction will auto-detect; here we set explicitly if available)
+\donttest{
 pbmc_small <- Seurat::RunUMAP(pbmc_small, reduction = "pca", dims = 1:10)
 plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "umap",
                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+}
 
 # 3) Custom colors (manual override): highlight blue, background light gray
 plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",

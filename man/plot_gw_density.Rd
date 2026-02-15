@@ -34,6 +34,8 @@ plot_gw_density(
 
 \item{combine}{Passed to \code{Nebulosa::plot_density()}.}
 
+\item{adjustment}{Numeric value to adjust the bandwidth of the kernel density estimation (default 1).}
+
 \item{...}{Additional arguments passed to \code{Nebulosa::plot_density()}.}
 }
 \value{
@@ -52,5 +54,6 @@ data <- SeuratObject::pbmc_small
 # Plot density for CD8A and CD8B in two columns
 plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", ncol = 2)
 # plot joint density for CD3D and CD3E
-plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", joint = TRUE, combine = FALSE)
+plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne",
+                joint = TRUE, combine = FALSE)
 }
