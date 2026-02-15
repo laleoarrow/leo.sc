@@ -208,7 +208,7 @@ calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
 # multi-core version of rogue calculation
 mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
                      min.cell.n = 10, remove.outlier.n = 2, span = 0.5, r = 1,
-                     filter = F, min.cells = 10, min.genes = 10, mt.method = "fdr",
+                     filter = FALSE, min.cells = 10, min.genes = 10, mt.method = "fdr",
                      mc.cores = 1){
   requireNamespace("pbmcapply", quietly = TRUE)
   clusters <- unique(labels)
