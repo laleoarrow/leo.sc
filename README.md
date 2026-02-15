@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <img src="image-1.png" width="90%" />
+  <img src="man/figures/image-1.png" width="90%" />
   <br>
   <em>Single cell analysis space for LEO universe</em>
 </p>
