@@ -13,9 +13,6 @@
   <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental">
     <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge&logo=jekyll&logoColor=white" />
   </a>
-</p>
-<br>
-<p align="center">
   <a href="https://www.researchgate.net/profile/Ao-Lu-5">
     <img src="https://img.shields.io/badge/ResearchGate-Ao%20Lu-00CCBB?logo=researchgate&logoColor=white&style=for-the-badge" />
   </a>
@@ -27,15 +24,11 @@
   </a>
 </p>
 
-<br>
-
 <p align="center">
   <img src="image-1.png" width="90%" />
   <br>
   <em>Single cell analysis space for LEO universe</em>
 </p>
-
-<br>
 
 ### Introduction
 
