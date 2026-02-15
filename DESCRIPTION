@@ -4,7 +4,7 @@ Version: 0.1.0
 Authors@R: 
     person("Ao", "Lu", , "luao@stu.cqmu.edu.cn", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0001-0927-4468"))
-Description: LEO for single-cell analysis. This package provides helper functions for single-cell analysis workflow.
+Description: LEO for single-cell analysis. This package provides useful functions for single-cell analysis workflow.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
