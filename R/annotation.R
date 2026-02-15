@@ -1,15 +1,26 @@
 #' Format marker-gene lists for (bulk) upload
 #'
-#' Convert a Seurat **marker table** into plain-text lines of the form `cluster_<id>:geneA,geneB,…`, one line per cluster.
+#' Convert a Seurat **marker table** into plain-text lines of the form
+#' `cluster_<id>:geneA,geneB,…`, one line per cluster.
 #'
-#' @param markers_tbl  A tibble / data.frame **containing at least** the columns `cluster`, `gene`, and the column named in `order_by`.
+#' @param markers_tbl  A tibble / data.frame **containing at least** the columns
+#'   `cluster`, `gene`, and the column named in `order_by`.
 #' @param top_n        Integer. Number of genes to keep for each cluster (default **10**).
-#' @param order_by     Column used to rank genes *within* each cluster. Accepts either a **character string** (e.g. `"avg_log2FC"`) or a *bare* column name (unquoted). Default `"avg_log2FC"`.
+#' @param order_by     Column used to rank genes *within* each cluster. Accepts either a
+#'   **character string** (e.g. `"avg_log2FC"`) or a *bare* column name (unquoted).
+#'   Default `"avg_log2FC"`.
 #' @param verbose      Logical. Print `leo_log()` messages? Default **TRUE**.
 #'
 #' @return A length-one character vector
 #'
 #' @examples
+#' top10 <- data.frame(
+#'   cluster = rep(1:2, each = 2),
+#'   gene = c("GeneA", "GeneB", "GeneC", "GeneD"),
+#'   p_val_adj = c(0.01, 0.05, 0.001, 0.02),
+#'   avg_log2FC = c(1.5, 1.2, 2.0, 1.8),
+#'   avg_logFC = c(1.5, 1.2, 2.0, 1.8)
+#' )
 #' txt <- format_markers_for_upload(top10, top_n = 15, order_by = "p_val_adj")
 #' cat(txt)
 #'
@@ -63,8 +74,10 @@ format_markers_for_upload <- function(markers_tbl,
 #' Sort string-based cluster labels numerically and refactor
 #'
 #' @param seurat_obj A Seurat object.
-#' @param cluster_col A character string. The name of the metadata column containing cluster labels as strings.
-#' @return The Seurat object with the specified cluster column re-factored so that its levels are sorted numerically.
+#' @param cluster_col A character string. The name of the metadata column 
+#'                    containing cluster labels as strings.
+#' @return The Seurat object with the specified cluster column re-factored so 
+#'         that its levels are sorted numerically.
 #' @examples
 #' # seurat_obj <- sort_string_numeric_clusters(seurat_obj, "cluster_labels")
 #' @importFrom leo.basic leo_log
@@ -102,16 +115,19 @@ get_cluster_counts <- function(seurat_obj, cluster_col) {
 
 #' Filter Seurat clusters by percentage or absolute cell count
 #'
-#' Filters clusters in a Seurat object based on either a percentage of total cells or an absolute count threshold.
+#' Filters clusters in a Seurat object based on either a percentage of total cells
+#' or an absolute count threshold.
 #'
 #' @param seurat_obj A Seurat object.
 #' @param cluster_col Character. Name of the metadata column for clusters.
-#' @param pct_threshold Numeric. Minimum fraction of total cells to keep a cluster (default 0.001).
-#' @param abs_threshold Numeric or NULL. If provided, minimum absolute cell count to keep a cluster (overrides pct_threshold).
+#' @param pct_threshold Numeric. Minimum fraction of total cells to keep a cluster
+#'                      (default 0.001).
+#' @param abs_threshold Numeric or NULL. If provided, minimum absolute cell count
+#'                      to keep a cluster (overrides pct_threshold).
 #' @return Character vector of cluster IDs to keep.
 #'
 #' @importFrom dplyr rename arrange filter pull desc
-#' @import leo.basic
+#' @importFrom leo.basic leo_log
 #' @export
 filter_clusters_by_percent_or_cell_count <- function(seurat_obj, cluster_col,
                                                      pct_threshold = 0.001,
@@ -316,6 +332,7 @@ score_signature <- function(sc_obj, signature_list, seed = 1) {
 #' @param save_path Path to save the heatmap PDF (Only support pdf). Default is "./signature.pdf".
 #' @param width Width of the saved heatmap PDF. Default is 6.
 #' @param height Height of the saved heatmap PDF. Default is 6.
+#' @param heatmap_title Character. Title for the heatmap. Default: NULL.
 #'
 #' @returns heatmap obj.
 #' @importFrom dplyr mutate group_by summarise across
@@ -435,7 +452,7 @@ plot_score_signature_heatmap <- function(sc_obj, signature_list, group, group_pr
 #' @param pval.adj     Adjusted p‐value cutoff, default 0.05
 #' @param logfc        |log2FC| cutoff, default 0.5
 #' @param min.pct1     Minimum detection pct in marker group, default 0.5
-#' @param max.pct2     Maximum detection pct in other group, default 0.2、
+#' @param max.pct2     Maximum detection pct in other group, default 0.2
 #' @param return_top_n Number of top markers to return for each group, default 1.
 #'
 #' @return named vector c(marker1,marker2)
@@ -484,8 +501,10 @@ locate_most_different_g_in_2_group <- function(sc_obj, ident.1, ident.2, assay =
 #'
 #' This function gives the most distinguishing marker for a cluster
 #'
-#' @param markers A data frame or tibble containing marker genes with columns `cluster`, `pct.1`, and `pct.2`.
-#' @param cluster_of_interest The cluster number for which to find the most distinguishing marker. Default is 1.
+#' @param markers A data frame or tibble containing marker genes with columns
+#'   `cluster`, `pct.1`, and `pct.2`.
+#' @param cluster_of_interest The cluster number for which to find the most
+#'   distinguishing marker. Default is 1.
 #'
 #' @returns The most distinguishing marker for the specified cluster.
 #' @export

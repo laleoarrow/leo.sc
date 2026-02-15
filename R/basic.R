@@ -187,7 +187,9 @@ seurat_basic_qc <- function(seurat_obj,
 #' @param seurat_obj A Seurat object with QC metrics.
 #' @param out_path Character. Directory to save plots.
 #' @param prefix Character. Filename prefix. Default: "before_".
+#' @param save_plot Logical. Whether to save the plots. Default: TRUE.
 #' @param verbose Logical. Whether to print `leo.log` messages. Default: TRUE.
+#' @param ... Additional arguments passed to methods.
 #'
 #' @return Invisible NULL.
 #'

@@ -166,7 +166,7 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
 #' @param return Character. If `"plot"` (default), returns a list of plot and data; otherwise returns raw Augur object
 #'
 #' @import Seurat
-#' @importFrom Augur calculate_auc
+
 #' @importFrom ggplot2 aes geom_point geom_segment scale_color_manual theme element_text
 #'
 #' @return If `return = "plot"`, a list with `plot` (ggplot object) and `dat` (Augur result); else, Augur result only
@@ -174,6 +174,9 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
 leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inactive"),
                       label_level = NULL, label_col = "Stage1", cell_type_col = "cell_anno",
                       n_threads = 8, return = "plot"){
+  if (!requireNamespace("Augur", quietly = TRUE)) {
+    stop("Package 'Augur' is required for this function.\nPlease install it using:\n  remotes::install_github('neurorestore/Augur')", call. = FALSE)
+  }
   if (class(subset_value) != "vector") subset_value <- as.vector(subset_value)
   if (is.null(label_level)) label_level <- unique(srt@meta.data[[label_col]])
   if (!is.null(subset_col)) {
@@ -185,7 +188,7 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
     srt@meta.data[[label_col]] <- factor(srt@meta.data[[label_col]], levels = label_level)
   }
   leo_log("Calculating AUC using {label_col} as label_col and {cell_type_col} as cell_type_col with {n_threads} thread{?s}")
-  augur <- calculate_auc(srt,
+  augur <- Augur::calculate_auc(srt,
                          label_col = label_col,
                          cell_type_col = cell_type_col,
                          n_threads = n_threads)

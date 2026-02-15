@@ -32,12 +32,12 @@ Imports:
     SingleCellExperiment,
     DoubletFinder,
     ROGUE,
-    Augur,
     miloR,
     Nebulosa,
     ggrastr,
     ggsci
 Suggests: 
+    Augur,
     pbmcapply
 Remotes: 
     laleoarrow/leo.basic,
