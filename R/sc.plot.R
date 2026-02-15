@@ -182,40 +182,90 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 #' @export
 plot_gw_density <- function(data, features, reduction = "umap.harmony",
                             size = 0.2, pal = "magma", ncol = 2,
-                            joint = FALSE, combine = TRUE, ...) {
-  missing <- setdiff(features, rownames(data))
-  if (length(missing)) leo_log("Features not found: ", paste(missing, collapse = ", "), level = "danger")
+                            joint = FALSE, combine = TRUE, adjustment = 1, ...) {
+  # Check features
+  available_features <- rownames(data)
+  missing <- setdiff(features, available_features)
+  if (length(missing) > 0) {
+     features <- intersect(features, available_features)
+     leo.basic::leo_log("Features not found: {paste(missing, collapse = ', ')}", level = "warning")
+     if (length(features) == 0) stop("No valid features found.")
+  }
+
   if (is.null(reduction)) reduction <- SeuratObject::DefaultDimReduc(data)
-  if (!joint) {
-    plots <- lapply(features, function(gene) {
-      Nebulosa::plot_density(data,
-                             features  = gene,
-                             reduction = reduction,
-                             method    = "wkde",
-                             pal       = pal,
-                             size      = size,
-                             raster    = TRUE) +
-        ggplot2::coord_fixed() +
-        ggplot2::theme_void()
+
+  # Check Nebulosa availability and compatibility
+  use_fallback <- FALSE
+  if (!requireNamespace("Nebulosa", quietly = TRUE)) {
+    leo.basic::leo_log("Nebulosa not installed. Using basic ggplot2 fallback.", level = "warning")
+    use_fallback <- TRUE
+  }
+
+  # Try running Nebulosa::plot_density
+  if (!use_fallback) {
+    tryCatch({
+      # Attempt to run Nebulosa - test run on first feature if not joint, or all if joint
+      # We just return the result directly if it works
+      if (!joint) {
+        plots <- lapply(features, function(gene) {
+           p <- Nebulosa::plot_density(data, features = gene, reduction = reduction,
+                                  method = "wkde", pal = pal, size = size,
+                                  raster = TRUE) +
+             ggplot2::coord_fixed() + ggplot2::theme_void()
+           return(p)
+        })
+        if (combine) return(patchwork::wrap_plots(plots, ncol = ncol))
+        return(plots)
+      } else {
+        leo.basic::leo_log("Plot joint density for {length(features)} features.")
+        x <- Nebulosa::plot_density(data, features = features, reduction = reduction,
+                                    joint = TRUE, method = "wkde", pal = pal,
+                                    size = size, raster = TRUE, combine = TRUE)
+        return(x)
+      }
+    }, error = function(e) {
+      if (grepl("slot", e$message, ignore.case = TRUE) || grepl("FetchData", e$message, ignore.case = TRUE)) {
+         leo.basic::leo_log("Nebulosa failed (likely Seurat v5 incompatibility). Using robust fallback.", level = "warning")
+         # Logic continues below to fallback
+      } else {
+         stop(e) # Re-throw unexpected errors
+      }
     })
-    if (combine) {
-      return(patchwork::wrap_plots(plots, ncol = ncol))
-    } else {
-      return(plots)
-    }
-  } else {
-    leo.basic::leo_log("Plot joint density for {length(features)} features.")
-    x <- Nebulosa::plot_density(data,
-                                features  = features,
-                                reduction = reduction,
-                                joint     = TRUE,
-                                method    = "wkde",
-                                pal       = pal,
-                                size      = size,
-                                raster    = TRUE,
-                                combine   = TRUE)
-    # x <- lapply(x, function(y) y + ggplot2::coord_fixed() + ggplot2::theme_void())
-    return(x)
+    # If we reached here without returning, an error occurred in tryCatch that we caught
+    use_fallback <- TRUE
+  }
+
+  # Fallback Implementation (Seurat v5 compatible)
+  if (use_fallback) {
+      coords <- Seurat::Embeddings(data, reduction = reduction)[, 1:2]
+      colnames(coords) <- c("Dim1", "Dim2")
+
+      make_plot <- function(feat_name, expr_vals) {
+        df <- data.frame(coords, Expression = expr_vals)
+        p <- ggplot2::ggplot(df, ggplot2::aes(x = Dim1, y = Dim2)) +
+          ggplot2::stat_density_2d(ggplot2::aes(fill = ggplot2::after_stat(density), weight = Expression),
+                                   geom = "raster", contour = FALSE, adjust = adjustment, n = 200) +
+          ggplot2::scale_fill_viridis_c(option = pal) +
+          ggplot2::coord_fixed() +
+          ggplot2::theme_void() +
+          ggplot2::labs(title = feat_name) +
+          ggplot2::theme(legend.position = "right", plot.title = ggplot2::element_text(hjust = 0.5))
+        return(p)
+      }
+
+      if (isTRUE(joint)) {
+        expr_data <- Seurat::FetchData(data, vars = features, layer = "data")
+        joint_expr <- apply(expr_data, 1, prod)
+        title <- paste(features, collapse = " & ")
+        return(make_plot(title, joint_expr))
+      } else {
+        plots <- lapply(features, function(f) {
+          expr <- Seurat::FetchData(data, vars = f, layer = "data")[, 1]
+          make_plot(f, expr)
+        })
+        if (isTRUE(combine)) return(patchwork::wrap_plots(plots, ncol = ncol))
+        return(plots)
+      }
   }
 }
 
@@ -385,8 +435,10 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 #' @param p_col character or NULL, column name for p-values; if provided, p >= p_thresh is treated as non-significant
 #' @param p_thresh numeric, p-value threshold for significance (default 0.05)
 #' @param effect_thresh numeric, reference threshold for dashed line and color midpoint (default 0)
-#' @param pal_color named vector c(low, mid, high) for diverging palette (default c(low="#5062A7", mid="white", high="#BC4B59"))
-#' @param log2fc_limits NULL or numeric length-2 c(L, R); if set, color scale limits are c(effect_thresh-L, effect_thresh+R)
+#' @param pal_color named vector c(low, mid, high) for diverging palette
+#'   (default c(low="#5062A7", mid="white", high="#BC4B59"))
+#' @param log2fc_limits NULL or numeric length-2 c(L, R); if set, color scale limits
+#'   are c(effect_thresh-L, effect_thresh+R)
 #' @param insignificant_color character, color for non-significant/gray-zone points (default "gray80")
 #' @param deadband NULL or non-negative numeric; if set, |effect - effect_thresh| <= deadband will be gray
 #' @param flip_coord logical, flip coordinates to show groups vertically (default TRUE)
@@ -456,12 +508,14 @@ plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, e
   if (!is.factor(df2$group_by)) df2$group_by <- factor(df2$group_by, levels = unique(df2$group_by))
 
   # non-significant / gray-zone flags
-  in_gray <- rep(F, nrow(df2))
+  in_gray <- rep(FALSE, nrow(df2))
   if (!is.null(p_col)) {
     pvals <- suppressWarnings(as.numeric(df2[[p_col]]))
     in_gray <- in_gray | (!is.na(pvals) & pvals >= p_thresh)
   }
-  if (!is.null(deadband) && is.finite(deadband) && deadband >= 0) in_gray <- in_gray | (abs(df2$effect - effect_thresh) <= deadband)
+  if (!is.null(deadband) && is.finite(deadband) && deadband >= 0) {
+    in_gray <- in_gray | (abs(df2$effect - effect_thresh) <= deadband)
+  }
   df2$in_gray <- in_gray
 
   # color scale limits

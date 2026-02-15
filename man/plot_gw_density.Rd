@@ -13,6 +13,7 @@ plot_gw_density(
   ncol = 2,
   joint = FALSE,
   combine = TRUE,
+  adjustment = 1,
   ...
 )
 }
