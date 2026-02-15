@@ -75,7 +75,7 @@ ROIE <- function(crosstab){
 #' @export
 leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
                      anno_col = "cell_anno", group_col = "Stage1", group_col_order = NULL,
-                     plot = F, plot_path = NULL, col_fun = NULL,
+                     plot = FALSE, plot_path = NULL, col_fun = NULL,
                      width = NULL, height = NULL, fontsize = 6,
                      heatmap_anno = c("num", "+++", "none"),
                      sym_break = c(-Inf, .1, 1, 2, 3, Inf), ...) {
@@ -139,7 +139,7 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
 
     pdf(plot_path, width = width, height = height)
     ht <- ComplexHeatmap::Heatmap(
-      roe, col = col_fun, cluster_rows = T, cluster_columns = F,
+      roe, col = col_fun, cluster_rows = TRUE, cluster_columns = FALSE,
       clustering_distance_rows = "euclidean", clustering_method_rows = "ward.D", # https://github.com/yuyang3/pan-B/blob/main/Figure4.R
       column_names_gp = grid::gpar(fontsize = 6), row_names_gp = grid::gpar(fontsize = 6),
       cell_fun = cell_fun, name = "Ro/e", ...
@@ -246,7 +246,7 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
                      group = "case_ctrl", group_level = c("ctrl", "vkh"),
                      reduced.dim = "harmony",
                      k = 50, prop = 0.1,
-                     adjust_k_p_manual = F,
+                     adjust_k_p_manual = FALSE,
                      contrast_list = NULL,
                      batch = NULL,
                      cell_type = NULL) {

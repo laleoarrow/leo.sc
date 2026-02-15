@@ -436,7 +436,7 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, effect_thresh = 0,
                       pal_color = c(low = "#5062A7", mid = "white", high = "#BC4B59"),
                       log2fc_limits = NULL, insignificant_color = "gray80", deadband = NULL,
-                      flip_coord = T, point_size = 1, seed = NULL, ...) {
+                      flip_coord = TRUE, point_size = 1, seed = NULL, ...) {
   # basic checks
   if (!is.data.frame(df)) stop("`df` must be a data.frame / tibble.")
   if (!group.by %in% names(df)) stop(glue::glue("{group.by} not found in `df`."))

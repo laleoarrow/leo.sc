@@ -13,6 +13,34 @@ Imports:
     data.table,
     cli,
     dplyr,
-    leo.basic
-Remotes:
-    laleoarrow/leo.basic
+    leo.basic,
+    Seurat,
+    SeuratObject,
+    ggplot2,
+    patchwork,
+    rlang,
+    tibble,
+    scales,
+    cowplot,
+    glue,
+    matrixStats,
+    Matrix,
+    ggalluvial,
+    ggbeeswarm,
+    circlize,
+    ComplexHeatmap,
+    SingleCellExperiment,
+    DoubletFinder,
+    ROGUE,
+    Augur,
+    miloR,
+    Nebulosa,
+    ggrastr,
+    ggsci
+Suggests: 
+    pbmcapply
+Remotes: 
+    laleoarrow/leo.basic,
+    chris-mcginnis-ucsf/DoubletFinder,
+    PaulingLiu/ROGUE,
+    neurorestore/Augur
