@@ -14,7 +14,7 @@
     <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge&logo=jekyll&logoColor=white" />
   </a>
 </p>
-
+<br>
 <p align="center">
   <a href="https://www.researchgate.net/profile/Ao-Lu-5">
     <img src="https://img.shields.io/badge/ResearchGate-Ao%20Lu-00CCBB?logo=researchgate&logoColor=white&style=for-the-badge" />
@@ -39,7 +39,7 @@
 
 ### Introduction
 
-**Layered Exploratory Omics** (LEO) is a tool specifically designed for deep analysis of genomic data. `leo.sc` focuses on single-cell analysis, providing specialized functions for data exploration and visualization. It employs a multi-layered exploratory approach to help researchers (**mostly myself**) uncover the complex biological information hidden behind their data. Combining cutting-edge statistical and computational methodologies, LEO offers a user-friendly interface and powerful data-processing capabilities, enabling users ranging from beginners to advanced to effectively explore and analyze their omics data.
+**Layered Exploratory Omics** (LEO) is a tool specifically designed for deep analysis of genomic data. `leo.sc` focuses on single-cell analysis, providing specialized functions for data exploration and visualization. It employs a multi-layered exploratory approach to help researchers (**mostly myself**) uncover the complex biological information hidden behind their data. Combining cutting-edge statistical and computational methodologies, LEO offers a user-friendly interface and powerful data-processing capabilities, enabling users ranging from beginners to advanced to effectively explore and analyze their single-cell data.
 
 ### Development Status
 **LEO is currently in the early stages of development**. We welcome feedback from developers, researchers, and users to help improve the product. Please note that some features may not be fully stable yet, and interfaces may change based on user feedback.
