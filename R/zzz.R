@@ -11,7 +11,7 @@
   )
   
   # Prepare metadata lines (User format)
-  pkg_version <- packageVersion("leo.sc")
+  pkg_version <- utils::packageVersion("leo.sc")
   current_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
   
   meta_text <- c(

@@ -7,7 +7,7 @@
 #' @export
 #'
 #' @examples
-#' srt %>% get_meta_colnames()
+#' get_meta_colnames(srt)
 get_meta_colnames <- function(srt, pattern = "RNA_snn_res") {
   res_cols <- grep("^RNA_snn_res\\.", colnames(srt@meta.data), value = TRUE)
   if (pattern == "RNA_snn_res") res_cols <- res_cols |> (\(x) x[order(as.numeric(sub("^RNA_snn_res\\.", "", x)))])()
