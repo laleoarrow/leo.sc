@@ -30,7 +30,7 @@ locate_most_different_g_in_2_group(
 
 \item{min.pct1}{Minimum detection pct in marker group, default 0.5}
 
-\item{max.pct2}{Maximum detection pct in other group, default 0.2、}
+\item{max.pct2}{Maximum detection pct in other group, default 0.2}
 
 \item{return_top_n}{Number of top markers to return for each group, default 1.}
 

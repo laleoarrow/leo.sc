@@ -20,7 +20,11 @@ plot_qc(
 
 \item{prefix}{Character. Filename prefix. Default: "before_".}
 
+\item{save_plot}{Logical. Whether to save the plots. Default: TRUE.}
+
 \item{verbose}{Logical. Whether to print \code{leo.log} messages. Default: TRUE.}
+
+\item{...}{Additional arguments passed to methods.}
 }
 \value{
 Invisible NULL.

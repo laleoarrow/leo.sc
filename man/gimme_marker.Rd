@@ -7,9 +7,11 @@
 gimme_marker(markers, cluster_of_interest = 1)
 }
 \arguments{
-\item{markers}{A data frame or tibble containing marker genes with columns \code{cluster}, \code{pct.1}, and \code{pct.2}.}
+\item{markers}{A data frame or tibble containing marker genes with columns
+\code{cluster}, \code{pct.1}, and \code{pct.2}.}
 
-\item{cluster_of_interest}{The cluster number for which to find the most distinguishing marker. Default is 1.}
+\item{cluster_of_interest}{The cluster number for which to find the most
+distinguishing marker. Default is 1.}
 }
 \value{
 The most distinguishing marker for the specified cluster.

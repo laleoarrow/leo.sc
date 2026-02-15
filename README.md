@@ -2,9 +2,9 @@
 
 <!-- badges: start -->
 [![](https://laleoarrow.r-universe.dev/badges/leo.sc)](https://laleoarrow.r-universe.dev/leo.sc)
-[![ResearchGate](https://img.shields.io/badge/ResearchGate-Ao%20Lu-00CCBB?logo=researchgate&logoColor=white)](https://www.researchgate.net/profile/Ao-Lu-5)
-[![ORCID](https://img.shields.io/badge/ORCID-0009--0001--0927--4468-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0009-0001-0927-4468)
-[![Lifecycle: Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![ResearchGate](https://img.shields.io/badge/ResearchGate-Ao%20Lu-00CCBB?logo=researchgate&logoColor=white&style=for-the-badge)](https://www.researchgate.net/profile/Ao-Lu-5)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0001--0927--4468-A6CE39?logo=orcid&logoColor=white&style=for-the-badge)](https://orcid.org/0009-0001-0927-4468)
+[![GitHub](https://img.shields.io/badge/GitHub-laleoarrow-181717?logo=github&logoColor=white&style=for-the-badge)](https://github.com/laleoarrow/leo.sc)
 <!-- badges: end -->
 
 > Single cell analysis space for LEO universe

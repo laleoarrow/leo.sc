@@ -16,13 +16,16 @@ filter_clusters_by_percent_or_cell_count(
 
 \item{cluster_col}{Character. Name of the metadata column for clusters.}
 
-\item{pct_threshold}{Numeric. Minimum fraction of total cells to keep a cluster (default 0.001).}
+\item{pct_threshold}{Numeric. Minimum fraction of total cells to keep a cluster
+(default 0.001).}
 
-\item{abs_threshold}{Numeric or NULL. If provided, minimum absolute cell count to keep a cluster (overrides pct_threshold).}
+\item{abs_threshold}{Numeric or NULL. If provided, minimum absolute cell count
+to keep a cluster (overrides pct_threshold).}
 }
 \value{
 Character vector of cluster IDs to keep.
 }
 \description{
-Filters clusters in a Seurat object based on either a percentage of total cells or an absolute count threshold.
+Filters clusters in a Seurat object based on either a percentage of total cells
+or an absolute count threshold.
 }

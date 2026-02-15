@@ -12,11 +12,14 @@ format_markers_for_upload(
 )
 }
 \arguments{
-\item{markers_tbl}{A tibble / data.frame \strong{containing at least} the columns \code{cluster}, \code{gene}, and the column named in \code{order_by}.}
+\item{markers_tbl}{A tibble / data.frame \strong{containing at least} the columns
+\code{cluster}, \code{gene}, and the column named in \code{order_by}.}
 
 \item{top_n}{Integer. Number of genes to keep for each cluster (default \strong{10}).}
 
-\item{order_by}{Column used to rank genes \emph{within} each cluster. Accepts either a \strong{character string} (e.g. \code{"avg_log2FC"}) or a \emph{bare} column name (unquoted). Default \code{"avg_log2FC"}.}
+\item{order_by}{Column used to rank genes \emph{within} each cluster. Accepts either a
+\strong{character string} (e.g. \code{"avg_log2FC"}) or a \emph{bare} column name (unquoted).
+Default \code{"avg_log2FC"}.}
 
 \item{verbose}{Logical. Print \code{leo_log()} messages? Default \strong{TRUE}.}
 }
@@ -24,9 +27,17 @@ format_markers_for_upload(
 A length-one character vector
 }
 \description{
-Convert a Seurat \strong{marker table} into plain-text lines of the form \verb{cluster_<id>:geneA,geneB,…}, one line per cluster.
+Convert a Seurat \strong{marker table} into plain-text lines of the form
+\verb{cluster_<id>:geneA,geneB,…}, one line per cluster.
 }
 \examples{
+top10 <- data.frame(
+  cluster = rep(1:2, each = 2),
+  gene = c("GeneA", "GeneB", "GeneC", "GeneD"),
+  p_val_adj = c(0.01, 0.05, 0.001, 0.02),
+  avg_log2FC = c(1.5, 1.2, 2.0, 1.8),
+  avg_logFC = c(1.5, 1.2, 2.0, 1.8)
+)
 txt <- format_markers_for_upload(top10, top_n = 15, order_by = "p_val_adj")
 cat(txt)
 

@@ -33,6 +33,8 @@ plot_score_signature_heatmap(
 
 \item{signature_cat_col}{Named vector. c("category1" = "color1", "category2" = "color2"). Provide to each category a color.}
 
+\item{heatmap_title}{Character. Title for the heatmap. Default: NULL.}
+
 \item{save_path}{Path to save the heatmap PDF (Only support pdf). Default is "./signature.pdf".}
 
 \item{width}{Width of the saved heatmap PDF. Default is 6.}

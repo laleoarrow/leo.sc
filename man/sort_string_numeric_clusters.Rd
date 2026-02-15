@@ -9,10 +9,12 @@ sort_string_numeric_clusters(seurat_obj, cluster_col)
 \arguments{
 \item{seurat_obj}{A Seurat object.}
 
-\item{cluster_col}{A character string. The name of the metadata column containing cluster labels as strings.}
+\item{cluster_col}{A character string. The name of the metadata column
+containing cluster labels as strings.}
 }
 \value{
-The Seurat object with the specified cluster column re-factored so that its levels are sorted numerically.
+The Seurat object with the specified cluster column re-factored so
+that its levels are sorted numerically.
 }
 \description{
 Sort string-based cluster labels numerically and refactor
