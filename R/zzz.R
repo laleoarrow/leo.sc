@@ -1,8 +1,8 @@
 
 .onAttach <- function(libname, pkgname) {
-  # Based on user-provided pixel-perfect draft
-  # Translation: █=\u2588, ║=\u2551, ╗=\u2557, ═=\u2550, ╔=\u2554, ╝=\u255d, ╚=\u255a
-  banner <- paste(
+  # [BASE TRANSLATION] 100% Faithful to User 1085 human-aligned grid
+  # Legend: █=\u2588, ║=\u2551, ╗=\u2557, ═=\u2550, ╔=\u2554, ╝=\u255d, ╚=\u255a, ==ASCII
+  banner_raw <- c(
     "======================================================",
     "  \u2588\u2588\u2557     \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2588\u2557          \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  ",
     "  \u2588\u2588\u2551     \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557         \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D  ",
@@ -10,8 +10,7 @@
     "  \u2588\u2588\u2551     \u2588\u2588\u2554\u2550\u2550\u255D  \u2588\u2588\u2551   \u2588\u2588\u2551   \u255A\u2550\u255D    \u255A\u2550\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551       ",
     "  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D         \u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D  ",
     "  \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u2550\u2550\u2550\u2550\u255D          \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  ",
-    "======================================================",
-    sep = "\n"
+    "======================================================"
   )
   
   pkg_version <- utils::packageVersion("leo.sc")
@@ -21,33 +20,28 @@
     paste0(">>> Welcome to leo.sc package (v", pkg_version, ") <<<"),
     paste0(">>> System Time: ", current_time, " <<<"),
     ">>> Have fun with single cell data <<<"
-  ) 
+  )
+
+  # Core UI logic
+  v_p <- 2; h_p <- 10
+  inner_w <- nchar(banner_raw[1])
   
-  # Padding for Vignette Halo
-  h_pad <- 8; v_pad <- 2
-  
-  banner_lines <- strsplit(banner, "\n")[[1]]
-  inner_width  <- max(nchar(banner_lines))
-  full_width   <- inner_width + 2 * h_pad
-  
-  # Build center content with horizontal padding
-  core_lines <- c(
-    vapply(banner_lines, function(l) paste0(strrep(" ", h_pad), l, strrep(" ", inner_width - nchar(l)), strrep(" ", h_pad)), character(1)),
+  # Prepare centered output lines
+  content_lines <- c(
+    banner_raw,
     vapply(meta_text, function(t) {
-      n_t <- nchar(t)
-      pl <- floor((inner_width - n_t) / 2)
-      pr <- inner_width - n_t - pl
-      paste0(strrep(" ", h_pad), strrep(" ", pl), t, strrep(" ", pr), strrep(" ", h_pad))
+      n_t <- nchar(t); pl <- floor((inner_w - n_t) / 2); pr <- inner_w - n_t - pl
+      paste0(strrep(" ", pl), t, strrep(" ", pr))
     }, character(1))
   )
   
-  # Final full message with top/bottom buffers
-  full_msg_lines <- c(rep(strrep(" ", full_width), v_pad), core_lines, rep(strrep(" ", full_width), v_pad))
+  # Final Expansion with Glow Buffer
+  full_lines <- c(rep(strrep(" ", inner_w), v_p), content_lines, rep(strrep(" ", inner_w), v_p))
   
   if (nzchar(Sys.getenv("RSTUDIO")) || .has_color()) {
-     packageStartupMessage(.halo_render(full_msg_lines, v_pad, h_pad))
+     packageStartupMessage(.render_premium_vignette(full_lines, v_p, h_p, inner_w))
   } else {
-    packageStartupMessage(paste(full_msg_lines, collapse = "\n"))
+    packageStartupMessage(paste(full_lines, collapse = "\n"))
   }
 }
 
@@ -57,36 +51,44 @@
   TRUE
 }
 
-.halo_render <- function(lines, v_p, h_p, 
-                        fg_start = "#e82020", fg_mid = "#FFFFFF", fg_end = "#2626e1",
-                        bg_center = "#000000", bg_halo = "#4d3422") {
+.render_premium_vignette <- function(lines, v_p, h_p, core_w,
+                                    fg_s = "#e82020", fg_m = "#FFFFFF", fg_e = "#2626e1",
+                                    bg_c = "#000000", bg_halo = "#322212") {
   
-  rows <- length(lines); cols <- nchar(lines[1])
-  r_start <- v_p + 1; r_end <- rows - v_p
-  c_start <- h_p + 1; c_end <- cols - h_p
+  total_r <- length(lines)
   max_dist <- sqrt(v_p^2 + h_p^2)
   
+  # FG Gradient across core width
+  fg_ramp <- grDevices::colorRampPalette(c(fg_s, fg_m, fg_e))(core_w)
+  fg_rgb <- grDevices::col2rgb(fg_ramp)
+  
   vapply(seq_along(lines), function(r) {
-    chars <- strsplit(lines[r], "")[[1]]
-    fgs <- grDevices::colorRampPalette(c(fg_start, fg_mid, fg_end))(length(chars))
-    fg_rgb <- grDevices::col2rgb(fgs)
+    # Pad line for vignette glow
+    padded_line <- paste0(strrep(" ", h_p), lines[r], strrep(" ", h_p))
+    chars <- strsplit(padded_line, "")[[1]]
     
     res <- vapply(seq_along(chars), function(c) {
-      dx <- max(0, c_start - c, c - c_end)
-      dy <- max(0, r_start - r, r - r_end)
+      dx <- max(0, (h_p + 1) - c, c - (h_p + core_w))
+      dy <- max(0, (v_p + 1) - r, r - (total_r - v_p))
       dist <- sqrt(dx^2 + dy^2)
       
       if (dist == 0) {
-        bg_rgb <- grDevices::col2rgb(bg_center)
+        bg <- c(0,0,0) # Pure Black Core
       } else if (dist <= max_dist) {
-        w <- dist / max_dist
-        bg_rgb <- (1-w) * grDevices::col2rgb(bg_center) + w * grDevices::col2rgb(bg_halo)
+        w <- (dist / max_dist)^1.4 
+        bg <- (1-w) * grDevices::col2rgb(bg_c) + w * grDevices::col2rgb(bg_halo)
       } else {
-        return(chars[c]) # Outside glow
+        return(chars[c]) # Edge transparent
       }
-      sprintf("\033[48;2;%d;%d;%dm\033[38;2;%d;%d;%dm%s", 
-              as.integer(bg_rgb[1]), as.integer(bg_rgb[2]), as.integer(bg_rgb[3]),
-              fg_rgb[1,c], fg_rgb[2,c], fg_rgb[3,c], chars[c])
+      
+      if (c > h_p && c <= (h_p + core_w)) {
+        cc <- c - h_p
+        sprintf("\033[48;2;%d;%d;%dm\033[38;2;%d;%d;%dm%s", 
+                as.integer(bg[1]), as.integer(bg[2]), as.integer(bg[3]),
+                fg_rgb[1,cc], fg_rgb[2,cc], fg_rgb[3,cc], chars[c])
+      } else {
+        sprintf("\033[48;2;%d;%d;%dm%s", as.integer(bg[1]), as.integer(bg[2]), as.integer(bg[3]), chars[c])
+      }
     }, character(1))
     paste0(paste(res, collapse = ""), "\033[0m")
   }, character(1)) |> paste(collapse = "\n")
