@@ -52,7 +52,7 @@
   TRUE
 }
 
-.gradient <- function(text, start = c(160, 0, 0), mid = c(255, 255, 255), end = c(0, 0, 160)) {
+.gradient <- function(text, start = "#e82020", mid = "#FFFFFF", end = "#2626e1") {
   lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
   colored <- vapply(lines, function(line) {
     if (!nzchar(line)) return("")
@@ -60,28 +60,16 @@
     if (length(chars) == 0) return("")
     
     n <- length(chars)
-    # Map t from 0..1
-    t <- if (n == 1) 0 else seq(0, 1, length.out = n)
+    # Use colorRampPalette for smooth interpolation
+    colors <- grDevices::colorRampPalette(c(start, mid, end))(n)
     
-    # Interpolate
-    rgb_vals <- vapply(t, function(val) {
-      if (val < 0.5) {
-        # Interpolate start -> mid
-        # Normalize val to 0..1 range for this segment: val * 2
-        p <- val * 2
-        start + (mid - start) * p
-      } else {
-        # Interpolate mid -> end
-        # Normalize val to 0..1 range for this segment: (val - 0.5) * 2
-        p <- (val - 0.5) * 2
-        mid + (end - mid) * p
-      }
-    }, numeric(3))
+    # Convert hex to RGB for terminal
+    rgb_vals <- grDevices::col2rgb(colors)
     
-    # rgb_vals is 3 x n
-    r <- round(rgb_vals[1, ])
-    g <- round(rgb_vals[2, ])
-    b <- round(rgb_vals[3, ])
+    # rgb_vals is 3 x n matrix (rows: red, green, blue)
+    r <- rgb_vals[1, ]
+    g <- rgb_vals[2, ]
+    b <- rgb_vals[3, ]
     
     paste0(sprintf("\033[38;2;%d;%d;%dm%s", r, g, b, chars), collapse = "")
   }, character(1))

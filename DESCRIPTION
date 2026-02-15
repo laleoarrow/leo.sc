@@ -38,7 +38,8 @@ Imports:
     ggsci
 Suggests: 
     Augur,
-    pbmcapply
+    pbmcapply,
+    devtools
 Remotes: 
     laleoarrow/leo.basic,
     chris-mcginnis-ucsf/DoubletFinder,
