@@ -39,6 +39,8 @@ Note that for large data sets, it might be good to set k higher (50-100) and pro
 
 \item{adjust_k_p_manual}{Logical. If \code{TRUE}, allows interactive adjustment of \code{k} and \code{prop} parameters.}
 
+\item{contrast_list}{List or NULL. Contrast vector/list for differential abundance testing.}
+
 \item{batch}{NULL or character. Feels useless yet as Seraut obj normally has already processed with batch-integration like harmony.}
 
 \item{cell_type}{Deprecated! Ignored in current version (placeholder for future stratification)}

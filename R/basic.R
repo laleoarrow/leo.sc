@@ -54,7 +54,7 @@ read_sc_data <- function(sc_path,
 #' @param normalize_method Character. Normalization method:
 #'  - "classic" (LogNormalize + FindVariableFeatures + ScaleData)
 #'  - "sctransform" (SCTransform).
-#'  - "sctransform&regress" (SCTransform + regress out unwanted sources [currently only percent.mt]).
+#'  - "sctransform&regress" (SCTransform + regress out unwanted sources (currently only percent.mt)).
 #' @param conserve.memory Logical. Whether to conserve memory in SCTransform. Default: FALSE.
 #' @param cluster_resolution Numeric. Resolution for FindClusters. Default: 1.0.
 #' @param n_hv_gene Integer. Number of top variable features to label. Default: 10.

@@ -24,7 +24,7 @@ plot_highlight_cluster(
 \arguments{
 \item{obj}{Seurat object.}
 
-\item{cluster_id}{Value to highlight (in Idents(obj) or obj[\link{group.by}]).}
+\item{cluster_id}{Value to highlight (in Idents(obj) or \code{obj[[group.by]]}).}
 
 \item{reduction}{Dimred name; default active reduction.}
 

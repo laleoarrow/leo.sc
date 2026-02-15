@@ -21,7 +21,7 @@ seurat_standard_normalize_and_scale(
 \itemize{
 \item "classic" (LogNormalize + FindVariableFeatures + ScaleData)
 \item "sctransform" (SCTransform).
-\item "sctransform&regress" (SCTransform + regress out unwanted sources \link{currently only percent.mt}).
+\item "sctransform&regress" (SCTransform + regress out unwanted sources (currently only percent.mt)).
 }}
 
 \item{conserve.memory}{Logical. Whether to conserve memory in SCTransform. Default: FALSE.}

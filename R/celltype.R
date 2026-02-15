@@ -57,7 +57,8 @@ ROIE <- function(crosstab){
 #' @param col_fun          colour scale: Defaut orange style or `redblue`
 #' @param plot_path        PDF path; default `"./ROIE.pdf"`
 #' @param width,height     device size; auto when `NULL`
-#' @param fontsize         text size inside heatmap
+#' @param fontsize         Font size for cell annotations (default 10).
+#' @param ...          Passed to \code{ComplexHeatmap::Heatmap}.
 #' @param heatmap_anno     `"num"`, `"+++`, or `"none"`
 #' @param sym_break        numeric breakpoints; **only two presets supported** --> `c(-Inf,.1,1,2,3,Inf)` or `c(-Inf,0,.2,.8,1,Inf)`
 #' @importFrom grid gpar grid.text unit
@@ -235,6 +236,7 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
 #' @param prop Numeric (0.1-0.2). Proportion of cells to use for neighbourhood definition (default: 0.1)
 #'   Note that for large data sets, it might be good to set k higher (50-100) and prop lower (0.01-0.1). See: https://github.com/MarioniLab/miloR/issues/108
 #' @param adjust_k_p_manual Logical. If `TRUE`, allows interactive adjustment of `k` and `prop` parameters.
+#' @param contrast_list List or NULL. Contrast vector/list for differential abundance testing.
 #' @param batch NULL or character. Feels useless yet as Seraut obj normally has already processed with batch-integration like harmony.
 #' @param cell_type Deprecated! Ignored in current version (placeholder for future stratification)
 #'

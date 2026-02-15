@@ -56,7 +56,7 @@
 plot_alluvial <- function(df, x_col = "Group", weight_col = "Percentage",
                           stratum_col = "Cluster", width = 0.3, border_size = 0.5,
                           x_angle = 0, palette = NULL) {
-  df <- dplyr::mutate(df, !!x_col := factor(!!rlang::sym(x_col), levels = unique(!!rlang::sym(x_col))))
+  df[[x_col]] <- factor(df[[x_col]], levels = unique(df[[x_col]]))
 
   # adjust parameters
   fill_scale <- if (!is.null(palette)) {
@@ -224,7 +224,7 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
 #' This function highlight a cluster on a dimensional reduction in NPG palette with highlight on top.
 #'
 #' @param obj Seurat object.
-#' @param cluster_id Value to highlight (in Idents(obj) or obj[[group.by]]).
+#' @param cluster_id Value to highlight (in Idents(obj) or `obj[[group.by]]`).
 #' @param reduction Dimred name; default active reduction.
 #' @param group.by Metadata column; NULL uses Idents.
 #' @param highlight.col Highlight color; NULL -> ggsci NPG red.

@@ -43,11 +43,13 @@ leo.ROIE(
 
 \item{width, height}{device size; auto when \code{NULL}}
 
-\item{fontsize}{text size inside heatmap}
+\item{fontsize}{Font size for cell annotations (default 10).}
 
 \item{heatmap_anno}{\code{"num"}, \verb{"+++}, or \code{"none"}}
 
 \item{sym_break}{numeric breakpoints; \strong{only two presets supported} --> \code{c(-Inf,.1,1,2,3,Inf)} or \code{c(-Inf,0,.2,.8,1,Inf)}}
+
+\item{...}{Passed to \code{ComplexHeatmap::Heatmap}.}
 }
 \value{
 Ro/e matrix
