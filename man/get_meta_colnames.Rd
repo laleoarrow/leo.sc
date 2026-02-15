@@ -18,5 +18,9 @@ A vector of column names that match the pattern
 get colnames of srt obj meta data name
 }
 \examples{
+library(Seurat)
+# Create a dummy Seurat object with clustering columns
+srt <- SeuratObject::pbmc_small
+srt$RNA_snn_res.0.8 <- Idents(srt)
 get_meta_colnames(srt)
 }

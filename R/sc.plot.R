@@ -133,11 +133,11 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 
   stopifnot(inherits(obj, "Seurat"))
 
-  dat <- meta <- obj[[]] |>
-    dplyr::count(.data[[group_col]], .data[[cluster_col]], name = "n") |>
-    dplyr::group_by(.data[[group_col]]) |>
-    dplyr::mutate(Percentage = 100 * n / sum(n), .after = n) |>
-    dplyr::ungroup()
+  dat <- meta <- obj[[]]
+  dat <- dplyr::count(dat, .data[[group_col]], .data[[cluster_col]], name = "n")
+  dat <- dplyr::group_by(dat, .data[[group_col]])
+  dat <- dplyr::mutate(dat, Percentage = 100 * n / sum(n), .after = n)
+  dat <- dplyr::ungroup(dat)
 
   p <- plot_alluvial(meta, x_col = group_col,
                      weight_col  = "Percentage",
@@ -451,7 +451,7 @@ plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, e
   leo.basic::leo_log("plot_dbee(): start; rows={n_rows}, groups={n_groups}")
 
   # data prep
-  df2 <- df %>% dplyr::mutate(group_by = .data[[group.by]], effect = as.numeric(.data[[effect_col]]))
+  df2 <- dplyr::mutate(df, group_by = .data[[group.by]], effect = as.numeric(.data[[effect_col]]))
   if (!is.factor(df2$group_by)) df2$group_by <- factor(df2$group_by, levels = unique(df2$group_by))
 
   # non-significant / gray-zone flags

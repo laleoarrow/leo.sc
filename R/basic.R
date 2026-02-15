@@ -94,8 +94,7 @@ seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c
 
   if (!is.null(plot_dir)){
     top_genes <- head(VariableFeatures(seurat_obj), n_hv_gene)
-    p <- VariableFeaturePlot(seurat_obj) %>%
-      LabelPoints(points = top_genes, repel = TRUE, xnudge = 0, ynudge = 0)
+    p <- Seurat::LabelPoints(plot = Seurat::VariableFeaturePlot(seurat_obj), points = top_genes, repel = TRUE, xnudge = 0, ynudge = 0)
     save_path <- file.path(plot_dir, "variable_features.pdf")
     ggsave(save_path, plot = p, width = 8, height = 3, create.dir = T)
     leo.basic::leo_log("vst_plot save to >>> {.path {save_path}}", level = "success", verbose = verbose)
