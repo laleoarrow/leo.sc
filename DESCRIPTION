@@ -32,7 +32,6 @@ Imports:
     DoubletFinder,
     ROGUE,
     miloR,
-    Nebulosa,
     ggrastr,
     ggsci
 Suggests: 

@@ -13,6 +13,7 @@ plot_gw_density(
   ncol = 2,
   joint = FALSE,
   combine = TRUE,
+  adjustment = 1,
   ...
 )
 }
@@ -45,7 +46,6 @@ based on \pkg{Nebulosa}.
 \examples{
 # Assuming 'all' is a Seurat object with harmony UMAP already run
 library(Seurat)
-library(Nebulosa)
 library(patchwork)
 data <- SeuratObject::pbmc_small
 # Plot density for CD8A and CD8B in two columns
