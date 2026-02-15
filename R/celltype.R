@@ -58,9 +58,15 @@ ROIE <- function(crosstab){
 #' @param plot_path        PDF path; default `"./ROIE.pdf"`
 #' @param width,height     device size; auto when `NULL`
 #' @param fontsize         text size inside heatmap
-#' @param heatmap_anno     `"num"`, `"+++"`, or `"none"`
+#' @param heatmap_anno     `"num"`, `"+++`, or `"none"`
 #' @param sym_break        numeric breakpoints; **only two presets supported** --> `c(-Inf,.1,1,2,3,Inf)` or `c(-Inf,0,.2,.8,1,Inf)`
-#' @param ...              passed to `ComplexHeatmap::Heatmap()`
+#' @importFrom grid gpar grid.text unit
+#' @importFrom grDevices pdf dev.off
+#' @importFrom ComplexHeatmap Heatmap draw
+#' @importFrom circlize colorRamp2
+#' @importFrom stats setNames
+#' @importFrom leo.basic leo_log
+#' @importFrom utils head
 #'
 #' @return Ro/e matrix
 #'
@@ -81,7 +87,7 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
                      sym_break = c(-Inf, .1, 1, 2, 3, Inf), ...) {
   meta <- srt@meta.data
   if (!is.null(filter_col) && !is.null(filter_criteria)) {
-    if (class(filter_criteria) != "vector") filter_criteria <- as.vector(filter_criteria)
+    if (!is.vector(filter_criteria)) filter_criteria <- as.vector(filter_criteria)
     meta <- meta[meta[[filter_col]] %in% filter_criteria, ]
     leo.basic::leo_log("Filter {.emph {filter_col}} for {.emph {filter_criteria}} --> {nrow(meta)} cell{?s} kept")
   }
@@ -137,15 +143,15 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
       }
     }
 
-    pdf(plot_path, width = width, height = height)
+    grDevices::pdf(plot_path, width = width, height = height)
     ht <- ComplexHeatmap::Heatmap(
       roe, col = col_fun, cluster_rows = TRUE, cluster_columns = FALSE,
       clustering_distance_rows = "euclidean", clustering_method_rows = "ward.D", # https://github.com/yuyang3/pan-B/blob/main/Figure4.R
       column_names_gp = grid::gpar(fontsize = 6), row_names_gp = grid::gpar(fontsize = 6),
       cell_fun = cell_fun, name = "Ro/e", ...
     )
-    draw(ht, heatmap_legend_side = "right")
-    dev.off()
+    ComplexHeatmap::draw(ht, heatmap_legend_side = "right")
+    grDevices::dev.off()
     return(list(heatmap = ht, roe = roe))
   } else {
     return(roe)
@@ -166,8 +172,8 @@ leo.ROIE <- function(srt, filter_col = NULL, filter_criteria = NULL,
 #' @param return Character. If `"plot"` (default), returns a list of plot and data; otherwise returns raw Augur object
 #'
 #' @import Seurat
-
-#' @importFrom ggplot2 aes geom_point geom_segment scale_color_manual theme element_text
+#' @importFrom ggplot2 aes geom_point geom_segment scale_color_manual theme element_text element_blank
+#' @importFrom leo.basic leo_log
 #'
 #' @return If `return = "plot"`, a list with `plot` (ggplot object) and `dat` (Augur result); else, Augur result only
 #' @export
@@ -177,7 +183,7 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
   if (!requireNamespace("Augur", quietly = TRUE)) {
     stop("Package 'Augur' is required for this function.\nPlease install it using:\n  remotes::install_github('neurorestore/Augur')", call. = FALSE)
   }
-  if (class(subset_value) != "vector") subset_value <- as.vector(subset_value)
+  if (!is.vector(subset_value)) subset_value <- as.vector(subset_value)
   if (is.null(label_level)) label_level <- unique(srt@meta.data[[label_col]])
   if (!is.null(subset_col)) {
     srt <- subset_srt(srt, subset_col, subset_value)
@@ -193,7 +199,7 @@ leo.augur <- function(srt, subset_col = NULL, subset_value = c("Control", "Inact
                          cell_type_col = cell_type_col,
                          n_threads = n_threads)
   if(return == "plot"){
-    p <- plot_lollipop(augur) +
+    p <- Augur::plot_lollipop(augur) +
       # geom_segment(aes(xend = cell_type, yend = 0.5), size = 1) +
       geom_point(size = 3, aes(color = cell_type)) +
       scale_color_manual(values = cell_anno_color) +
@@ -255,7 +261,7 @@ leo.milo <- function(all, sample = "orig.ident", milo_mode = "fast",
                      cell_type = NULL) {
   ec <- leo.basic::leo_log; ec("Tutorial: https://www.bioconductor.org/packages/devel/bioc/vignettes/miloR/inst/doc/milo_gastrulation.html?")
   require(miloR); require(SingleCellExperiment)
-  if (class(all$orig.ident) != "character") all$orig.ident <- as.character(all$orig.ident)
+  if (!is.character(all$orig.ident)) all$orig.ident <- as.character(all$orig.ident)
   if (!identical(levels(all@meta.data[[group]]), group_level)) all@meta.data[[group]] <- factor(all@meta.data[[group]], levels = group_level)
   reduced.dim <- toupper(reduced.dim)
 

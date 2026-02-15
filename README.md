@@ -29,7 +29,7 @@
 
 > Single cell analysis space for LEO universe
 <p align="center">
-  <img src="image.png" width="800px" />
+  <img src="image-1.png" width="800px" />
 </p>
 ### Introduction
 **Layered Exploratory Omics** (LEO) is a tool specifically designed for deep analysis of genomic data. `leo.sc` focuses on single-cell analysis, providing specialized functions for data exploration and visualization. It employs a multi-layered exploratory approach to help researchers (**mostly myself**) uncover the complex biological information hidden behind their data. Combining cutting-edge statistical and computational methodologies, LEO offers a user-friendly interface and powerful data-processing capabilities, enabling users ranging from beginners to advanced to effectively explore and analyze their omics data.

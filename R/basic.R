@@ -120,10 +120,11 @@ seurat_standard_normalize_and_scale <- function(seurat_obj, normalize_method = c
 #'
 #' @return A filtered Seurat object.
 #'
-#' @importFrom Seurat PercentageFeatureSet
+#' @importFrom Seurat PercentageFeatureSet Idents
 #' @importFrom leo.basic leo_log
 #' @importFrom patchwork wrap_plots plot_annotation
 #' @importFrom cowplot plot_grid
+#' @importFrom ggplot2 theme element_text
 #' @export
 seurat_basic_qc <- function(seurat_obj,
                             nFeature_RNA_low = 200, nFeature_RNA_high = 7500,
@@ -271,7 +272,7 @@ doublet_removal <- function(seurat_obj=sc_matrix, out_path,
 
   # estimate doublets and homotypic proportion
   nExp    <- round(doublet_rate * n_cells) # default ~7.5% doublet rate
-  hom.prop <- modelHomotypic(seurat_obj@meta.data$seurat_clusters)
+  hom.prop <- DoubletFinder::modelHomotypic(seurat_obj@meta.data$seurat_clusters)
   nExp.adj <- round(nExp * (1 - hom.prop))
   leo.basic::leo_log(sprintf("Expected doublets: %d (adjusted: %d)", nExp, nExp.adj), level = "info", verbose = verbose)
 

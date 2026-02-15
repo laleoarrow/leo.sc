@@ -56,6 +56,8 @@
 #' @importFrom dplyr count filter pull mutate arrange desc select slice_head everything case_when n
 #' @importFrom rlang sym
 #' @importFrom stats setNames
+#' @importFrom grDevices Sys.time
+#' @importFrom utils head
 #' @importFrom leo.basic leo_log leo_enrich format_geneList
 silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
                       cell_col = "cell_anno", filter_cell_threshold = 10,
