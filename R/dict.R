@@ -91,7 +91,6 @@
 #' @format List with two elements: \code{$data}, \code{$source}.
 #' @export
 #' @examples
-#' devtools::load_all("/Users/leoarrow/project/mypackage/leo.sc")
 #' t_nk_marker <- leo.marker$t_nk_marker$data
 leo.marker <- list(
   t_nk_marker = list(

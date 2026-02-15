@@ -234,7 +234,7 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
 #' @param dpi Single numeric DPI for raster geoms (default 300).
 #' @param legend Show legend (default TRUE).
 #' @param legend_labels Named vector to rename legend entries; must include
-#'   c("highlight","other"). Defaults to c(highlight=<cluster_id>, other="other").
+#'   c("highlight","other"). Defaults to c(highlight=cluster_id, other="other").
 #' @param legend_breaks Character vector to set legend order/visibility; accepts keys
 #'   in c("highlight","other") or their display labels in `legend_labels`.
 #'   Default c("highlight","other"). Use "highlight" only to hide "other".

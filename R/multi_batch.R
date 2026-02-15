@@ -6,6 +6,7 @@
 #' @param batch_col  Metadata column indicating batch/sample. Default \code{"Batch"}.
 #' @param slot       Expression slot to inspect: \code{"counts"} for presence; \code{"data"} for averaged expression.
 #' @param genes      Character vector of genes (only for \code{check_gene_avg_in_multi_batch}).
+#' @param common_genes Character vector of shared genes (only for \code{subset_common_gene_in_multi_batch}).
 #' @param assay      Assay to subset. Default \code{"RNA"}.
 #'
 #' @name   check_gene_stats_in_multi_batch

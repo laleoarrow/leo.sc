@@ -67,7 +67,7 @@ format_markers_for_upload <- function(markers_tbl,
                      level = "info", verbose = verbose)
   leo.basic::leo_log("Backup website: http://biocc.hrbmu.edu.cn/ACT/index.jsp",
                      level = "info", verbose = verbose)
-  leo.basic::leo_log("Marker list formatted ✔", level = "success", verbose = verbose)
+  leo.basic::leo_log("Marker list formatted [v]", level = "success", verbose = verbose)
   return(txt)
 }
 
@@ -85,7 +85,7 @@ format_markers_for_upload <- function(markers_tbl,
 sort_string_numeric_clusters <- function(seurat_obj, cluster_col) {
   clust_vec   <- as.character(seurat_obj@meta.data[[cluster_col]])
   new_levels  <- as.character(sort(as.numeric(unique(clust_vec))))
-  leo.basic::leo_log("ℹ️ New ordered levels for '", cluster_col, "': ",
+  leo.basic::leo_log("[i] New ordered levels for '", cluster_col, "': ",
                      paste(new_levels, collapse = ", "))
   seurat_obj@meta.data[[cluster_col]] <- factor(clust_vec, levels = new_levels)
   return(seurat_obj)
