@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://laleoarrow.r-universe.dev/leo.sc">
-    <img src="https://img.shields.io/badge/R--universe-leo.sc-226e63?logo=r&logoColor=white&style=for-the-badge" />
+    <img src="https://img.shields.io/badge/R--universe-leo.sc--v0.1.0-226e63?logo=r&logoColor=white&style=for-the-badge" />
   </a>
   <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental">
     <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge" />
