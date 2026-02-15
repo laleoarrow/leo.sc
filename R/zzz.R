@@ -1,16 +1,19 @@
 
 .onAttach <- function(libname, pkgname) {
+  # Based on user-provided pixel-perfect draft
+  # Translation: █=\u2588, ║=\u2551, ╗=\u2557, ═=\u2550, ╔=\u2554, ╝=\u255d, ╚=\u255a
   banner <- paste(
-    "  \u2588\u2588\u2557     \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2588\u2557           \u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  ",
+    "======================================================",
+    "  \u2588\u2588\u2557     \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2588\u2557          \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  ",
     "  \u2588\u2588\u2551     \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557         \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D  ",
     "  \u2588\u2588\u2551     \u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2551   \u2588\u2588\u2551   \u2588\u2588\u2557   \u255A\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2551       ",
     "  \u2588\u2588\u2551     \u2588\u2588\u2554\u2550\u2550\u255D  \u2588\u2588\u2551   \u2588\u2588\u2551   \u255A\u2550\u255D    \u255A\u2550\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551       ",
     "  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D         \u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D  ",
     "  \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u2550\u2550\u2550\u2550\u255D          \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  ",
+    "======================================================",
     sep = "\n"
   )
   
-  # Prepare metadata lines (User format)
   pkg_version <- utils::packageVersion("leo.sc")
   current_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
   
@@ -20,30 +23,32 @@
     ">>> Have fun with single cell data <<<"
   ) 
   
-  # Calculate width for centering based on the banner
+  # Padding for Vignette Halo
+  h_pad <- 8; v_pad <- 2
+  
   banner_lines <- strsplit(banner, "\n")[[1]]
-  banner_width <- max(nchar(banner_lines))
+  inner_width  <- max(nchar(banner_lines))
+  full_width   <- inner_width + 2 * h_pad
   
-  # Center metadata lines
-  meta_lines <- vapply(meta_text, .center_line, width = banner_width, FUN.VALUE = character(1))
+  # Build center content with horizontal padding
+  core_lines <- c(
+    vapply(banner_lines, function(l) paste0(strrep(" ", h_pad), l, strrep(" ", inner_width - nchar(l)), strrep(" ", h_pad)), character(1)),
+    vapply(meta_text, function(t) {
+      n_t <- nchar(t)
+      pl <- floor((inner_width - n_t) / 2)
+      pr <- inner_width - n_t - pl
+      paste0(strrep(" ", h_pad), strrep(" ", pl), t, strrep(" ", pr), strrep(" ", h_pad))
+    }, character(1))
+  )
   
-  # Combine
-  full_msg <- paste(c(banner, meta_lines), collapse = "\n")
+  # Final full message with top/bottom buffers
+  full_msg_lines <- c(rep(strrep(" ", full_width), v_pad), core_lines, rep(strrep(" ", full_width), v_pad))
   
-  # Display
   if (nzchar(Sys.getenv("RSTUDIO")) || .has_color()) {
-     packageStartupMessage(.gradient(full_msg))
+     packageStartupMessage(.halo_render(full_msg_lines, v_pad, h_pad))
   } else {
-    packageStartupMessage(full_msg)
+    packageStartupMessage(paste(full_msg_lines, collapse = "\n"))
   }
-}
-
-# Helper functions
-.center_line <- function(text, width) {
-  if (width <= 0) return(text)
-  pad <- floor((width - nchar(text)) / 2)
-  if (pad < 0) pad <- 0
-  paste0(strrep(" ", pad), text)
 }
 
 .has_color <- function() {
@@ -52,27 +57,37 @@
   TRUE
 }
 
-.gradient <- function(text, start = "#e82020", mid = "#FFFFFF", end = "#2626e1") {
-  lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
-  colored <- vapply(lines, function(line) {
-    if (!nzchar(line)) return("")
-    chars <- strsplit(line, "")[[1]]
-    if (length(chars) == 0) return("")
+.halo_render <- function(lines, v_p, h_p, 
+                        fg_start = "#e82020", fg_mid = "#FFFFFF", fg_end = "#2626e1",
+                        bg_center = "#000000", bg_halo = "#4d3422") {
+  
+  rows <- length(lines); cols <- nchar(lines[1])
+  r_start <- v_p + 1; r_end <- rows - v_p
+  c_start <- h_p + 1; c_end <- cols - h_p
+  max_dist <- sqrt(v_p^2 + h_p^2)
+  
+  vapply(seq_along(lines), function(r) {
+    chars <- strsplit(lines[r], "")[[1]]
+    fgs <- grDevices::colorRampPalette(c(fg_start, fg_mid, fg_end))(length(chars))
+    fg_rgb <- grDevices::col2rgb(fgs)
     
-    n <- length(chars)
-    # Use colorRampPalette for smooth interpolation
-    colors <- grDevices::colorRampPalette(c(start, mid, end))(n)
-    
-    # Convert hex to RGB for terminal
-    rgb_vals <- grDevices::col2rgb(colors)
-    
-    # rgb_vals is 3 x n matrix (rows: red, green, blue)
-    r <- rgb_vals[1, ]
-    g <- rgb_vals[2, ]
-    b <- rgb_vals[3, ]
-    
-    paste0(sprintf("\033[38;2;%d;%d;%dm%s", r, g, b, chars), collapse = "")
-  }, character(1))
-  paste(paste0(colored, "\033[0m"), collapse = "\n")
+    res <- vapply(seq_along(chars), function(c) {
+      dx <- max(0, c_start - c, c - c_end)
+      dy <- max(0, r_start - r, r - r_end)
+      dist <- sqrt(dx^2 + dy^2)
+      
+      if (dist == 0) {
+        bg_rgb <- grDevices::col2rgb(bg_center)
+      } else if (dist <= max_dist) {
+        w <- dist / max_dist
+        bg_rgb <- (1-w) * grDevices::col2rgb(bg_center) + w * grDevices::col2rgb(bg_halo)
+      } else {
+        return(chars[c]) # Outside glow
+      }
+      sprintf("\033[48;2;%d;%d;%dm\033[38;2;%d;%d;%dm%s", 
+              as.integer(bg_rgb[1]), as.integer(bg_rgb[2]), as.integer(bg_rgb[3]),
+              fg_rgb[1,c], fg_rgb[2,c], fg_rgb[3,c], chars[c])
+    }, character(1))
+    paste0(paste(res, collapse = ""), "\033[0m")
+  }, character(1)) |> paste(collapse = "\n")
 }
-
