@@ -335,19 +335,19 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 
   leo.basic::leo_log("Highlight --> <{cluster_id}>: {nrow(df_high)}/{nrow(df)} cells on {reduction}; raster={raster_use}@{dpi_num}dpi.")
 
-  p <- ggplot2::ggplot()
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = Dim1, y = Dim2))
   if (isTRUE(raster_use) && requireNamespace("ggrastr", quietly = TRUE)) {
     p <- p +
-      ggrastr::geom_point_rast(data = df_other, ggplot2::aes(Dim1, Dim2, color = "other"),
+      ggrastr::geom_point_rast(data = df_other, ggplot2::aes(color = "other"),
                                size = pt.size, shape = pt.shape, raster.dpi = dpi_num) +
-      ggrastr::geom_point_rast(data = df_high,  ggplot2::aes(Dim1, Dim2, color = "highlight"),
+      ggrastr::geom_point_rast(data = df_high,  ggplot2::aes(color = "highlight"),
                                size = pt.size, shape = pt.shape, raster.dpi = dpi_num)
   } else {
     if (isTRUE(raster_use)) leo.basic::leo_log("ggrastr not installed; fallback to vector points.", level = "warning")
     p <- p +
-      ggplot2::geom_point(data = df_other, ggplot2::aes(Dim1, Dim2, color = "other"),
+      ggplot2::geom_point(data = df_other, ggplot2::aes(color = "other"),
                           size = pt.size, shape = pt.shape) +
-      ggplot2::geom_point(data = df_high,  ggplot2::aes(Dim1, Dim2, color = "highlight"),
+      ggplot2::geom_point(data = df_high,  ggplot2::aes(color = "highlight"),
                           size = pt.size, shape = pt.shape)
   }
 
@@ -480,6 +480,6 @@ plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, e
   if (isTRUE(flip_coord)) p <- p + ggplot2::coord_flip()
   p <- p + ggplot2::labs(x = group.by, y = effect_col, color = effect_col) + ggplot2::theme_classic()
 
-  leo.basic::leo_log("plot_dbee(): done")
+  leo.basic::leo_log("plot_dbee(): done", level = "success")
   return(p)
 }

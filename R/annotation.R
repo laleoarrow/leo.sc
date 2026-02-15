@@ -239,15 +239,16 @@ mc_rogue <- function(expr, labels, samples, platform = "UMI", k = NULL,
         tmp.matr <- expr[, index1]
         if (isTRUE(filter)) {
           print("Filtering out low-abundance genes and low-quality cells")
-          tmp.matr <- ROGUE:::matr.filter(tmp.matr, min.cells = min.cells,
+
+          tmp.matr <- ROGUE::matr.filter(tmp.matr, min.cells = min.cells,
                                   min.genes = min.genes)
         }
         else {
           tmp.matr <- tmp.matr
         }
         tmp.res <- SE_fun(tmp.matr, span = span, r = r)
-        tmp.res <- ROGUE:::ent.toli(tmp.res, tmp.matr, span = span,
-                            r = r, n = remove.outlier.n)
+        tmp.res <- ROGUE::ent.toli(tmp.res, tmp.matr, span = span,
+                                   r = r, n = remove.outlier.n)
         rogue[i] <- CalculateRogue(tmp.res, platform = platform,
                                    k = k)
       }

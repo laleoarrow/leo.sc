@@ -58,7 +58,7 @@ ROIE <- function(crosstab){
 #' @param plot_path        PDF path; default `"./ROIE.pdf"`
 #' @param width,height     device size; auto when `NULL`
 #' @param fontsize         Font size for cell annotations (default 10).
-#' @param ...          Passed to \code{ComplexHeatmap::Heatmap}.
+#' @param ...              Passed to \code{ComplexHeatmap::Heatmap}.
 #' @param heatmap_anno     `"num"`, `"+++`, or `"none"`
 #' @param sym_break        numeric breakpoints; **only two presets supported** --> `c(-Inf,.1,1,2,3,Inf)` or `c(-Inf,0,.2,.8,1,Inf)`
 #' @importFrom grid gpar grid.text unit

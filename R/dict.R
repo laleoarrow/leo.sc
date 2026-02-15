@@ -58,7 +58,7 @@
 )
 .b_marker <- list(
   # CD20 (MS4A1) express in all B except for plasma B
-  # SDC1 = CD138 plasma B
+  # SDC1 = CD138 plasma B 
   All = c('MS4A1','CD19','CD79A'),
   naive =c('IGHD','FCER2','TCL1A','IL4R'),
   memory=c('CD27','AIM2','TNFRSF13B'),
