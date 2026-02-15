@@ -7,6 +7,12 @@
   <a href="https://github.com/r-universe/laleoarrow/actions/workflows/build.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/r-universe/laleoarrow/build.yml?branch=master&label=Build&style=for-the-badge" />
   </a>
+  <a href="https://github.com/laleoarrow/leo.sc/actions/workflows/R-CMD-check.yaml">
+    <img src="https://img.shields.io/github/actions/workflow/status/laleoarrow/leo.sc/R-CMD-check.yaml?style=for-the-badge&label=R-CMD-check" />
+  </a>
+  <a href="https://github.com/laleoarrow/leo.sc/actions/workflows/test-coverage.yaml">
+    <img src="https://img.shields.io/github/actions/workflow/status/laleoarrow/leo.sc/test-coverage.yaml?style=for-the-badge&label=test-coverage" />
+  </a>
   <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental">
     <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge" />
   </a>
