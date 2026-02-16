@@ -159,9 +159,9 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 #' @param reduction Name of the reduction to use for plotting (default "umap.harmony").
 #' @param joint Return joint density plot? By default FALSE
 #' @param size Size of the geom to be plotted (e.g. point size)
-#' @param pal Choose from Nebulosa's palettes, e.g. "magma", "inferno", "plasma", "viridis", "cividis".
+#' @param pal Choose from Nebulosa's palettes, e.g. "magma", "inferno",
+#'   "plasma", "viridis", "cividis".
 #' @param combine Passed to \code{Nebulosa::plot_density()}.
-#' @param adjustment Numeric value to adjust the bandwidth of the kernel density estimation (default 1).
 #' @param ... Additional arguments passed to \code{Nebulosa::plot_density()}.
 #'
 #' @return A patchwork object arranging density plots in a grid.
@@ -171,103 +171,59 @@ plot_alluvial_sc <- function(obj, group_col = "Group", cluster_col = "Cluster",
 #' @importFrom patchwork wrap_plots
 #' @importFrom leo.basic leo_log
 #' @examples
-#' # Assuming 'all' is a Seurat object with harmony UMAP already run
+#' \dontrun{
+#' # Assuming 'obj' is a Seurat object with harmony UMAP
 #' library(Seurat)
 #' library(Nebulosa)
 #' library(patchwork)
 #' data <- SeuratObject::pbmc_small
-#' # Plot density for CD8A and CD8B in two columns
-#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne", ncol = 2)
-#' # plot joint density for CD3D and CD3E
-#' plot_gw_density(data, features = c("CD3D", "CD3E"), reduction = "tsne",
+#' plot_gw_density(data, c("CD3D", "CD3E"),
+#'                 reduction = "tsne", ncol = 2)
+#' # joint density
+#' plot_gw_density(data, c("CD3D", "CD3E"),
+#'                 reduction = "tsne",
 #'                 joint = TRUE, combine = FALSE)
+#' }
 #' @export
 plot_gw_density <- function(data, features, reduction = "umap.harmony",
                             size = 0.2, pal = "magma", ncol = 2,
-                            joint = FALSE, combine = TRUE, adjustment = 1, ...) {
-  # Check features
-  available_features <- rownames(data)
-  missing <- setdiff(features, available_features)
-  if (length(missing) > 0) {
-     features <- intersect(features, available_features)
-     leo.basic::leo_log("Features not found: {paste(missing, collapse = ', ')}", level = "warning")
-     if (length(features) == 0) stop("No valid features found.")
+                            joint = FALSE, combine = TRUE, ...) {
+  missing <- setdiff(features, rownames(data))
+  if (length(missing)) {
+    leo.basic::leo_log(
+      "Features not found: {paste(missing, collapse = ', ')}",
+      level = "warning"
+    )
   }
-
   if (is.null(reduction)) reduction <- SeuratObject::DefaultDimReduc(data)
-
-  # Check Nebulosa availability and compatibility
-  use_fallback <- FALSE
-  if (!requireNamespace("Nebulosa", quietly = TRUE)) {
-    leo.basic::leo_log("Nebulosa not installed. Using basic ggplot2 fallback.", level = "warning")
-    use_fallback <- TRUE
-  }
-  
-  # Try running Nebulosa::plot_density
-  if (!use_fallback) {
-    tryCatch({
-      # Attempt to run Nebulosa - test run on first feature if not joint, or all if joint
-      # We just return the result directly if it works
-      if (!joint) {
-        plots <- lapply(features, function(gene) {
-           p <- Nebulosa::plot_density(data, features = gene, reduction = reduction,
-                                  method = "wkde", pal = pal, size = size,
-                                  raster = TRUE) +
-             ggplot2::coord_fixed() + ggplot2::theme_void()
-           return(p)
-        })
-        if (combine) return(patchwork::wrap_plots(plots, ncol = ncol))
-        return(plots)
-      } else {
-        leo.basic::leo_log("Plot joint density for {length(features)} features.")
-        x <- Nebulosa::plot_density(data, features = features, reduction = reduction,
-                                    joint = TRUE, method = "wkde", pal = pal,
-                                    size = size, raster = TRUE, combine = TRUE)
-        return(x)
-      }
-    }, error = function(e) {
-      if (grepl("slot", e$message, ignore.case = TRUE) || grepl("FetchData", e$message, ignore.case = TRUE)) {
-         leo.basic::leo_log("Nebulosa failed (likely Seurat v5 incompatibility). Using robust fallback.", level = "warning")
-         # Logic continues below to fallback
-      } else {
-         stop(e) # Re-throw unexpected errors
-      }
+  if (!joint) {
+    plots <- lapply(features, function(gene) {
+      Nebulosa::plot_density(data,
+                             features  = gene,
+                             reduction = reduction,
+                             method    = "wkde",
+                             pal       = pal,
+                             size      = size,
+                             raster    = TRUE) +
+        ggplot2::coord_fixed() +
+        ggplot2::theme_void()
     })
-    # If we reached here without returning, an error occurred in tryCatch that we caught
-    use_fallback <- TRUE
-  }
-
-  # Fallback Implementation (Seurat v5 compatible)
-  if (use_fallback) {
-      coords <- Seurat::Embeddings(data, reduction = reduction)[, 1:2]
-      colnames(coords) <- c("Dim1", "Dim2")
-
-      make_plot <- function(feat_name, expr_vals) {
-        df <- data.frame(coords, Expression = expr_vals)
-        p <- ggplot2::ggplot(df, ggplot2::aes(x = Dim1, y = Dim2)) +
-          ggplot2::stat_density_2d(ggplot2::aes(fill = ggplot2::after_stat(density), weight = .data$Expression),
-                                   geom = "raster", contour = FALSE, adjust = adjustment, n = 200) +
-          ggplot2::scale_fill_viridis_c(option = pal) +
-          ggplot2::coord_fixed() +
-          ggplot2::theme_void() +
-          ggplot2::labs(title = feat_name) +
-          ggplot2::theme(legend.position = "right", plot.title = ggplot2::element_text(hjust = 0.5))
-        return(p)
-      }
-
-      if (isTRUE(joint)) {
-        expr_data <- Seurat::FetchData(data, vars = features, layer = "data")
-        joint_expr <- apply(expr_data, 1, prod)
-        title <- paste(features, collapse = " & ")
-        return(make_plot(title, joint_expr))
-      } else {
-        plots <- lapply(features, function(f) {
-          expr <- Seurat::FetchData(data, vars = f, layer = "data")[, 1]
-          make_plot(f, expr)
-        })
-        if (isTRUE(combine)) return(patchwork::wrap_plots(plots, ncol = ncol))
-        return(plots)
-      }
+    if (combine) return(patchwork::wrap_plots(plots, ncol = ncol))
+    return(plots)
+  } else {
+    leo.basic::leo_log(
+      "Plot joint density for {length(features)} features."
+    )
+    x <- Nebulosa::plot_density(data,
+                                features  = features,
+                                reduction = reduction,
+                                joint     = TRUE,
+                                method    = "wkde",
+                                pal       = pal,
+                                size      = size,
+                                raster    = TRUE,
+                                combine   = TRUE)
+    return(x)
   }
 }
 
@@ -301,55 +257,64 @@ plot_gw_density <- function(data, features, reduction = "umap.harmony",
 #' @importFrom ggsci pal_npg
 #' @importFrom leo.basic leo_log
 #' @examples
+#' \dontrun{
 #' # load demo data
 #' data("pbmc_small", package = "SeuratObject")
 #'
-#' # 1) Basic: highlight first cluster on PCA (NPG red, other gray)
-#' plot_highlight_cluster(pbmc_small, cluster_id = levels(Seurat::Idents(pbmc_small))[1],
-#'                        reduction = "pca", pt.size = 0.5, pt.shape = 16, raster = FALSE, dpi = 300)
+#' # 1) Basic: highlight first cluster on PCA
+#' plot_highlight_cluster(
+#'   pbmc_small,
+#'   cluster_id = levels(Seurat::Idents(pbmc_small))[1],
+#'   reduction = "pca", pt.size = 0.5, raster = FALSE)
 #'
-#' # 2) Use UMAP (active reduction will auto-detect; here we set explicitly if available)
-#' \donttest{
-#' pbmc_small <- Seurat::RunUMAP(pbmc_small, reduction = "pca", dims = 1:10)
-#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "umap",
-#'                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
+#' # 2) Use UMAP
+#' pbmc_small <- Seurat::RunUMAP(
+#'   pbmc_small, reduction = "pca", dims = 1:10)
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "0",
+#'   reduction = "umap", pt.size = 0.6, raster = FALSE)
+#'
+#' # 3) Custom colors
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "0", reduction = "pca",
+#'   highlight.col = "#377EB8", other.col = "grey85")
+#'
+#' # 4) Hide legend
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "0", reduction = "pca",
+#'   legend = FALSE)
+#'
+#' # 5) Rename legend entries
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "0", reduction = "pca",
+#'   legend_labels = c(highlight = "Yes", other = "No"),
+#'   legend_breaks = c("highlight", "other"))
+#'
+#' # 6) Show only highlight in legend
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "0", reduction = "pca",
+#'   legend_labels = c(highlight = "Yes", other = "No"),
+#'   legend_breaks = "highlight")
+#'
+#' # 7) Rasterization
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "0", reduction = "pca",
+#'   raster = TRUE, dpi = 500)
+#'
+#' # 8) Metadata column grouping
+#' pbmc_small$Stage1 <- ifelse(
+#'   as.character(Seurat::Idents(pbmc_small)) == "0",
+#'   "Control", "Other")
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "Control",
+#'   group.by = "Stage1", reduction = "pca")
+#'
+#' # 9) Inside legend position
+#' plot_highlight_cluster(
+#'   pbmc_small, cluster_id = "Control",
+#'   group.by = "Stage1", reduction = "pca",
+#'   legend_pos = c(0.8, 0.8))
 #' }
-#'
-#' # 3) Custom colors (manual override): highlight blue, background light gray
-#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
-#'                        highlight.col = "#377EB8", other.col = "grey85",
-#'                        pt.size = 0.7, pt.shape = 16, raster = FALSE, dpi = 300)
-#'
-#' # 4) Hide legend entirely
-#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
-#'                        legend = FALSE, pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
-#'
-#' # 5) Rename legend entries & order them (show highlight then other)
-#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
-#'                        legend_labels = c(highlight = "Yes", other = "No"),
-#'                        legend_breaks = c("highlight","other"),
-#'                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
-#'
-#' # 6) Show only the highlight entry in legend (hide "other")
-#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
-#'                        legend_labels = c(highlight = "Yes", other = "No"),
-#'                        legend_breaks = "highlight",
-#'                        pt.size = 0.6, pt.shape = 16, raster = FALSE, dpi = 300)
-#'
-#' # 7) Big data style: force rasterization and set DPI
-#' plot_highlight_cluster(pbmc_small, cluster_id = "0", reduction = "pca",
-#'                        raster = TRUE, dpi = 500, pt.size = 0.6, pt.shape = 16)
-#'
-#' # 8) Use a metadata column for grouping (e.g., Stage1), highlight "Control"
-#' #    (replace "Stage1" with your metadata column that contains "Control")
-#' pbmc_small$Stage1 <- ifelse(as.character(Seurat::Idents(pbmc_small)) == "0", "Control", "Other")
-#' plot_highlight_cluster(pbmc_small, cluster_id = "Control", group.by = "Stage1",
-#'                        reduction = "pca", pt.size = 0.6, pt.shape = 16,
-#'                        raster = FALSE, dpi = 300)
-#' # 9) Same as above but customize legend position (inside plot area, e.g. top-right)
-#' plot_highlight_cluster(pbmc_small, cluster_id = "Control", group.by = "Stage1",
-#'                        reduction = "pca", pt.size = 0.6, pt.shape = 16,legend_pos = c(0.8,0.8),
-#'                        raster = FALSE, dpi = 300)
 #' @export
 plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by = NULL,
                                    highlight.col = NULL, other.col = "grey80",
@@ -430,13 +395,16 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 
 #' Different-effect-variable Beeswarm Plot
 #'
-#' Visualize continuous effect values (e.g., log2FC/beta/FC) across groups with a reference dashed line.
-#' Non-significant points (by p-value and/or deadband) are drawn in gray; significant points use a diverging palette.
+#' Visualize continuous effect values (e.g., log2FC/beta/FC)
+#' across groups with a reference dashed line.
+#' Non-significant points (by p-value and/or deadband) are
+#' drawn in gray; significant points use a diverging palette.
 #'
 #' @param df data.frame/tibble containing grouping and effect columns
 #' @param group.by character, column name for grouping
 #' @param effect_col character, column name for effect (e.g., "logFC", "beta")
-#' @param p_col character or NULL, column name for p-values; if provided, p >= p_thresh is treated as non-significant
+#' @param p_col character or NULL, column name for p-values;
+#'   if provided, p >= p_thresh is treated as non-significant
 #' @param p_thresh numeric, p-value threshold for significance (default 0.05)
 #' @param effect_thresh numeric, reference threshold for dashed line and color midpoint (default 0)
 #' @param pal_color named vector c(low, mid, high) for diverging palette
@@ -444,7 +412,8 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 #' @param log2fc_limits NULL or numeric length-2 c(L, R); if set, color scale limits
 #'   are c(effect_thresh-L, effect_thresh+R)
 #' @param insignificant_color character, color for non-significant/gray-zone points (default "gray80")
-#' @param deadband NULL or non-negative numeric; if set, |effect - effect_thresh| <= deadband will be gray
+#' @param deadband NULL or non-negative numeric; if set,
+#'   |effect - effect_thresh| <= deadband will be gray
 #' @param flip_coord logical, flip coordinates to show groups vertically (default TRUE)
 #' @param point_size numeric, point size (default 1)
 #' @param seed NULL or integer, for reproducible quasirandom placement
@@ -484,11 +453,18 @@ plot_highlight_cluster <- function(obj, cluster_id, reduction = NULL, group.by =
 #'    log2FC = rnorm(900, mean = rep(seq(-0.4, 0.4, length.out = 5), each = 180), sd = 1),
 #'    p_val_adj = pmin(runif(900)^2, 1)
 #'  )
-#'  # Visualize log2FC by cluster; non-sig: p_val_adj >= 0.05; dashed line at 0
-#'  p2 <- plot_dbee(deg_df, group.by = "cluster", effect_col = "log2FC",
-#'                  p_col = "p_val_adj", p_thresh = 0.05, effect_thresh = 0,
-#'                  pal_color = c(low = "#2C7BB6", mid = "#FFFFBF", high = "#D7191C"), flip_coord = FALSE,
-#'                  log2fc_limits = NULL, deadband = 0.05, point_size = 2, seed = 7)
+#'  # Visualize log2FC by cluster
+#'  p2 <- plot_dbee(
+#'    deg_df, group.by = "cluster",
+#'    effect_col = "log2FC",
+#'    p_col = "p_val_adj", p_thresh = 0.05,
+#'    effect_thresh = 0,
+#'    pal_color = c(
+#'      low = "#2C7BB6", mid = "#FFFFBF",
+#'      high = "#D7191C"),
+#'    flip_coord = FALSE,
+#'    log2fc_limits = NULL, deadband = 0.05,
+#'    point_size = 2, seed = 7)
 #'  print(p2)
 plot_dbee <- function(df, group.by, effect_col, p_col = NULL, p_thresh = 0.05, effect_thresh = 0,
                       pal_color = c(low = "#5062A7", mid = "white", high = "#BC4B59"),

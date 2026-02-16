@@ -28,7 +28,8 @@ plot_dbee(
 
 \item{effect_col}{character, column name for effect (e.g., "logFC", "beta")}
 
-\item{p_col}{character or NULL, column name for p-values; if provided, p >= p_thresh is treated as non-significant}
+\item{p_col}{character or NULL, column name for p-values;
+if provided, p >= p_thresh is treated as non-significant}
 
 \item{p_thresh}{numeric, p-value threshold for significance (default 0.05)}
 
@@ -42,7 +43,8 @@ are c(effect_thresh-L, effect_thresh+R)}
 
 \item{insignificant_color}{character, color for non-significant/gray-zone points (default "gray80")}
 
-\item{deadband}{NULL or non-negative numeric; if set, |effect - effect_thresh| <= deadband will be gray}
+\item{deadband}{NULL or non-negative numeric; if set,
+|effect - effect_thresh| <= deadband will be gray}
 
 \item{flip_coord}{logical, flip coordinates to show groups vertically (default TRUE)}
 
@@ -56,8 +58,10 @@ are c(effect_thresh-L, effect_thresh+R)}
 ggplot object
 }
 \description{
-Visualize continuous effect values (e.g., log2FC/beta/FC) across groups with a reference dashed line.
-Non-significant points (by p-value and/or deadband) are drawn in gray; significant points use a diverging palette.
+Visualize continuous effect values (e.g., log2FC/beta/FC)
+across groups with a reference dashed line.
+Non-significant points (by p-value and/or deadband) are
+drawn in gray; significant points use a diverging palette.
 }
 \examples{
 # ---- Example 1: MiloR-like DA results ----
@@ -82,10 +86,17 @@ Non-significant points (by p-value and/or deadband) are drawn in gray; significa
    log2FC = rnorm(900, mean = rep(seq(-0.4, 0.4, length.out = 5), each = 180), sd = 1),
    p_val_adj = pmin(runif(900)^2, 1)
  )
- # Visualize log2FC by cluster; non-sig: p_val_adj >= 0.05; dashed line at 0
- p2 <- plot_dbee(deg_df, group.by = "cluster", effect_col = "log2FC",
-                 p_col = "p_val_adj", p_thresh = 0.05, effect_thresh = 0,
-                 pal_color = c(low = "#2C7BB6", mid = "#FFFFBF", high = "#D7191C"), flip_coord = FALSE,
-                 log2fc_limits = NULL, deadband = 0.05, point_size = 2, seed = 7)
+ # Visualize log2FC by cluster
+ p2 <- plot_dbee(
+   deg_df, group.by = "cluster",
+   effect_col = "log2FC",
+   p_col = "p_val_adj", p_thresh = 0.05,
+   effect_thresh = 0,
+   pal_color = c(
+     low = "#2C7BB6", mid = "#FFFFBF",
+     high = "#D7191C"),
+   flip_coord = FALSE,
+   log2fc_limits = NULL, deadband = 0.05,
+   point_size = 2, seed = 7)
  print(p2)
 }
