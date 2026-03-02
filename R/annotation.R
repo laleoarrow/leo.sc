@@ -199,7 +199,7 @@ calcROGUE <- function(obj, assay = "RNA", layer = "counts", downsample = 3000,
   }
 
   leo.basic::leo_log("Filtering expression matrix with min.cells = {min.cells} and min.genes = {min.genes}")
-  expr <- GetAssayData(obj, assay = "RNA", slot="counts") %>%
+  expr <- GetAssayData(obj, assay = "RNA", layer = "counts") %>%
     matr.filter2(.,  min.cells, min.genes) %>%
     as.matrix(); gc()
 
