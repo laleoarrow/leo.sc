@@ -34,9 +34,6 @@
 
 **Layered Exploratory Omics** (LEO) is a tool specifically designed for deep analysis of genomic data. `leo.sc` focuses on single-cell analysis, providing specialized functions for data exploration and visualization. It employs a multi-layered exploratory approach to help researchers (**mostly myself**) uncover the complex biological information hidden behind their data. Combining cutting-edge statistical and computational methodologies, LEO offers a user-friendly interface and powerful data-processing capabilities, enabling users ranging from beginners to advanced to effectively explore and analyze their single-cell data.
 
-### About
-R toolkit for UK Biobank data analysis - field parsing, ICD processing, and clinical variable extraction: [laleoarrow.github.io/leo.ukb/](https://laleoarrow.github.io/leo.ukb/)
-
 ### Development Status
 **LEO is currently in the early stages of development**. We welcome feedback from developers, researchers, and users to help improve the product. Please note that some features may not be fully stable yet, and interfaces may change based on user feedback.
 
