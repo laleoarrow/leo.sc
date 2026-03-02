@@ -357,14 +357,14 @@ doublet_rate_dictionary <- function(n_cells) {
 #'
 #' @param seurat_obj Seurat object
 #' @param assay character. assay name, defaults to active assay
-#' @param slot character. data slot ("counts", "data" or "scale.data")
+#' @param layer character. data layer ("counts", "data" or "scale.data")
 #' @return named list with total_genes, total_cells, avg_genes_per_cell, genes_per_cell
 #' @importFrom Seurat DefaultAssay GetAssayData
 #' @importFrom leo.basic leo_log
 #' @export
-seurat_basic_info <- function(seurat_obj, assay = NULL, slot = "counts") {
+seurat_basic_info <- function(seurat_obj, assay = NULL, layer = "counts") {
   if (is.null(assay)) assay <- DefaultAssay(seurat_obj)
-  mat <- GetAssayData(seurat_obj, assay = assay, slot = slot)
+  mat <- GetAssayData(seurat_obj, assay = assay, layer = layer)
   total_genes       <- nrow(mat)
   total_cells       <- ncol(mat)
   genes_per_cell    <- colSums(mat > 0)
@@ -381,7 +381,7 @@ seurat_basic_info <- function(seurat_obj, assay = NULL, slot = "counts") {
 
 # decontX
 # todo
-contanmination_removal <- function(seurat_obj, assay = "RNA", slot = "counts",
+contanmination_removal <- function(seurat_obj, assay = "RNA", layer = "counts",
                                    decontX_path = NULL, verbose = TRUE) {
   # Placeholder for decontX implementation
   # This function should call the decontX executable with appropriate parameters

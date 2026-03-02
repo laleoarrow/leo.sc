@@ -1,0 +1,139 @@
+---
+title: "In-silico Knockout (SKO) Demo with Seurat Built-in Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{In-silico Knockout (SKO) Demo with Seurat Built-in Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+find_leo_sc_root <- function(start = getwd()) {
+  cur <- normalizePath(start, winslash = "/", mustWork = TRUE)
+  repeat {
+    desc <- file.path(cur, "DESCRIPTION")
+    if (file.exists(desc)) {
+      desc_lines <- readLines(desc, warn = FALSE)
+      if (any(grepl("^Package:\\s*leo\\.sc\\s*$", desc_lines))) {
+        return(cur)
+      }
+    }
+    parent <- dirname(cur)
+    if (identical(parent, cur)) return(NULL)
+    cur <- parent
+  }
+}
+
+# Prefer local checkout when available; otherwise use installed package.
+pkg_root <- find_leo_sc_root()
+if (!is.null(pkg_root) && requireNamespace("devtools", quietly = TRUE)) {
+  devtools::load_all(pkg_root, quiet = TRUE)
+} else if (!requireNamespace("leo.sc", quietly = TRUE)) {
+  stop("Please install leo.sc, or render from a leo.sc source checkout with devtools installed.")
+}
+
+silico_ko <- get("silico_ko", envir = asNamespace("leo.sc"), inherits = FALSE)
+```
+
+## Overview
+
+This tutorial demonstrates a complete SKO run using `silico_ko()` from `leo.sc`.
+
+- Dataset: `SeuratObject::pbmc_small` (built-in Seurat demo object)
+- Goal: run a reproducible in-silico knock-out contrast for one immune gene
+- Output: matched high/low cell groups, differential expression results, and enrichment results
+
+## Method (text + flowchart)
+
+`silico_ko()` in this demo follows a fixed six-step pipeline:
+
+```text
+Expressing-cell filter
+  -> Cell-type filter
+  -> High-expression group quota select
+  -> Matched low-expression group select
+  -> DEG (FindMarkers)
+  -> Enrichment (leo_enrich)
+```
+
+## Data & Gene Setup
+
+```{r data-setup}
+data("pbmc_small", package = "SeuratObject")
+srt <- pbmc_small
+
+# silico_ko() expects a cell annotation column
+srt$cell_anno <- as.character(Seurat::Idents(srt))
+
+candidate_genes <- c("LST1", "NKG7", "TYROBP", "IL7R", "CD3D", "MS4A1")
+
+expr_mat <- tryCatch(
+  Seurat::GetAssayData(srt, layer = "data"),
+  error = function(e) Seurat::GetAssayData(srt, slot = "data")
+)
+
+available_genes <- intersect(candidate_genes, rownames(expr_mat))
+stopifnot(length(available_genes) > 0)
+
+gene_positive_counts <- vapply(
+  available_genes,
+  function(g) sum(expr_mat[g, ] > 0),
+  numeric(1)
+)
+
+gene_rank <- data.frame(
+  gene = names(gene_positive_counts),
+  n_positive_cells = as.integer(gene_positive_counts),
+  stringsAsFactors = FALSE
+)
+gene_rank <- gene_rank[order(gene_rank$n_positive_cells, decreasing = TRUE), ]
+
+knitr::kable(gene_rank, caption = "Candidate immune genes ranked by positive-cell count")
+
+gene_use <- gene_rank$gene[[1]]
+gene_use
+```
+
+## Run SKO
+
+```{r run-sko}
+res <- silico_ko(
+  all = srt,
+  gene = gene_use,
+  sko_mode = "ko",
+  cell_col = "cell_anno",
+  filter_cell_threshold = 3,
+  pct_threshold = 0.2,
+  deg_method = "default",
+  enrichment_method = "ORA",
+  enrichment_bg = "GO"
+)
+
+names(res)
+```
+
+## Interpret Outputs
+
+```{r inspect-output}
+length(res$high_cells)
+length(res$low_cells)
+
+head(res$cell_rato)
+
+deg <- res$deg_results
+deg <- tibble::rownames_to_column(deg, "gene")
+head(deg[, c("gene", "avg_log2FC", "p_val_adj")])
+
+if (length(res$enrichments) == 0) {
+  cat("No enrichment result was returned (expected for very small demo data).\n")
+} else {
+  print(names(res$enrichments))
+}
+```
+
+## Caveats
+
+- `pbmc_small` is intentionally tiny and is only used here to keep the demo lightweight.
+- Enrichment output can be empty (`res$enrichments` may be `list()`) and this is expected in small datasets.
+- For biological interpretation, use larger datasets and review parameters such as `pct_threshold`, `filter_cell_threshold`, and the enrichment background.

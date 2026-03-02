@@ -6,9 +6,14 @@
 \alias{subset_common_gene_in_multi_batch}
 \title{Inspection of gene in multi-batch}
 \usage{
-check_gene_stats_in_multi_batch(srt, batch_col = "Batch", slot = "counts")
+check_gene_stats_in_multi_batch(srt, batch_col = "Batch", layer = "counts")
 
-check_gene_avg_in_multi_batch(srt, genes, batch_col = "Batch", slot = "counts")
+check_gene_avg_in_multi_batch(
+  srt,
+  genes,
+  batch_col = "Batch",
+  layer = "counts"
+)
 
 subset_common_gene_in_multi_batch(srt, common_genes, assay = "RNA")
 }
@@ -17,7 +22,7 @@ subset_common_gene_in_multi_batch(srt, common_genes, assay = "RNA")
 
 \item{batch_col}{Metadata column indicating batch/sample. Default \code{"Batch"}.}
 
-\item{slot}{Expression slot to inspect: \code{"counts"} for presence; \code{"data"} for averaged expression.}
+\item{layer}{Expression layer to inspect: \code{"counts"} for presence; \code{"data"} for averaged expression.}
 
 \item{genes}{Character vector of genes (only for \code{check_gene_avg_in_multi_batch}).}
 

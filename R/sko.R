@@ -77,7 +77,7 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
   # Step 1: Pre-filter -------
   # Filter out cells with zero expression for the target gene
   leo_log("Step 1: Filter out cells with zero expression for the target gene")
-  expr_vals <- Seurat::GetAssayData(all, slot = "data")[gene, ]
+  expr_vals <- Seurat::GetAssayData(all, layer = "data")[gene, ]
   cells_express <- names(expr_vals)[expr_vals > 0]
   n_total <- length(cells_express)
 
@@ -100,7 +100,7 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
   leo_log("Step 2: extract {.emph {n_extract}} cell{?s} with high {.emph {gene}} expression for analysis")
 
   # Step 3: Get top expressing cells ------
-  gene_vals <- Seurat::GetAssayData(all2, slot = "data")[gene, ]
+  gene_vals <- Seurat::GetAssayData(all2, layer = "data")[gene, ]
   df_gene   <- tibble::tibble(cell = names(gene_vals),
                               gene = gene,
                               expr = gene_vals,
