@@ -9,20 +9,31 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-leo_ns <- NULL
-if (
-  requireNamespace("leo.sc", quietly = TRUE) &&
-  exists("silico_ko", envir = asNamespace("leo.sc"), inherits = FALSE)
-) {
-  library(leo.sc)
-  leo_ns <- asNamespace("leo.sc")
-} else {
-  if (!requireNamespace("devtools", quietly = TRUE)) {
-    stop("Please install leo.sc or devtools before rendering this tutorial.")
+find_leo_sc_root <- function(start = getwd()) {
+  cur <- normalizePath(start, winslash = "/", mustWork = TRUE)
+  repeat {
+    desc <- file.path(cur, "DESCRIPTION")
+    if (file.exists(desc)) {
+      desc_lines <- readLines(desc, warn = FALSE)
+      if (any(grepl("^Package:\\s*leo\\.sc\\s*$", desc_lines))) {
+        return(cur)
+      }
+    }
+    parent <- dirname(cur)
+    if (identical(parent, cur)) return(NULL)
+    cur <- parent
   }
-  leo_ns <- devtools::load_all(".", quiet = TRUE)$env
 }
-silico_ko <- get("silico_ko", envir = leo_ns)
+
+# Prefer local checkout when available; otherwise use installed package.
+pkg_root <- find_leo_sc_root()
+if (!is.null(pkg_root) && requireNamespace("devtools", quietly = TRUE)) {
+  devtools::load_all(pkg_root, quiet = TRUE)
+} else if (!requireNamespace("leo.sc", quietly = TRUE)) {
+  stop("Please install leo.sc, or render from a leo.sc source checkout with devtools installed.")
+}
+
+silico_ko <- get("silico_ko", envir = asNamespace("leo.sc"), inherits = FALSE)
 ```
 
 ## Overview
