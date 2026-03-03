@@ -2,7 +2,7 @@ url: https://laleoarrow.github.io/leo.sc/
 
 template:
   bootstrap: 5
-  bootswatch: flatly
+  bootswatch: darkly
   light-switch: true
   theme: breeze-light
   theme-dark: breeze-dark
@@ -38,16 +38,13 @@ home:
 
 navbar:
   structure:
-    left: [home, install, tutorial, reference]
+    left: [home, tutorial, reference]
     right: [search, lightswitch, github]
   components:
     home:
       icon: fa-home
       text: Home
       href: index.html
-    install:
-      text: Installation
-      href: articles/installation.html
     tutorial:
       text: Tutorial
       href: articles/tutorial-sko.html
