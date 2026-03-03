@@ -73,7 +73,7 @@ srt <- pbmc_small
 # Reference: Seurat PBMC3k tutorial — https://satijalab.org/seurat/articles/pbmc3k_tutorial
 #   Monocytes   : TYROBP, LST1, FCGR3A  (cluster 1 — highest TYROBP/LST1)
 #   T / NK cells: CD3D, IL7R, NKG7      (cluster 0 — highest CD3D/NKG7)
-#   B cells     : MS4A1                  (cluster 2 — highest MS4A1)
+#   B cells     : MS4A1                 (cluster 2 — highest MS4A1)
 cluster_map <- c("0" = "T/NK cells", "1" = "CD14+ Monocytes", "2" = "B cells")
 srt$cell_anno <- dplyr::recode(as.character(Seurat::Idents(srt)), !!!cluster_map)
 
