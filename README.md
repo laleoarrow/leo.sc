@@ -19,18 +19,6 @@
   </a>
 </p>
 
-<p align="center">
-  <a href="https://www.researchgate.net/profile/Ao-Lu-5">
-    <img src="https://img.shields.io/badge/ResearchGate-Ao%20Lu-00CCBB?logo=researchgate&logoColor=white&style=for-the-badge" />
-  </a>
-  <a href="https://orcid.org/0009-0001-0927-4468">
-    <img src="https://img.shields.io/badge/ORCID-0009--0001--0927--4468-A6CE39?logo=orcid&logoColor=white&style=for-the-badge" />
-  </a>
-  <a href="https://github.com/laleoarrow/leo.sc">
-    <img src="https://img.shields.io/badge/GitHub-laleoarrow-181717?logo=github&logoColor=white&style=for-the-badge" />
-  </a>
-</p>
-
 <img src="man/figures/image-1.png" width="90%" />
 
 *A focused exploratory toolkit for single-cell data analysis, visualization, and in-silico perturbation.*
@@ -91,3 +79,17 @@ citation("leo.sc")
 ```
 
 **We look forward to collaborating with researchers and developers worldwide to advance innovation and progress in genomic data analysis!**
+
+---
+
+<p align="center">
+  <a href="https://www.researchgate.net/profile/Ao-Lu-5">
+    <img src="https://img.shields.io/badge/ResearchGate-Ao%20Lu-00CCBB?logo=researchgate&logoColor=white&style=for-the-badge" />
+  </a>
+  <a href="https://orcid.org/0009-0001-0927-4468">
+    <img src="https://img.shields.io/badge/ORCID-0009--0001--0927--4468-A6CE39?logo=orcid&logoColor=white&style=for-the-badge" />
+  </a>
+  <a href="https://github.com/laleoarrow/leo.sc">
+    <img src="https://img.shields.io/badge/GitHub-laleoarrow-181717?logo=github&logoColor=white&style=for-the-badge" />
+  </a>
+</p>
