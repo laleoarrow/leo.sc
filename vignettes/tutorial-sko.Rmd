@@ -59,9 +59,6 @@ FIP proceeds in six steps:
 5. **DEG**: Apply `Seurat::FindMarkers()` (Wilcoxon rank-sum; ***g***<sup>low</sup> as `ident.1`) to identify differentially expressed programs between groups.
 6. **Enrichment**: Run `leo.basic::leo_enrich()` (ORA / GSEA against GO, KEGG, or custom backgrounds) to infer the biological functions associated with ***g***<sup>high</sup> vs ***g***<sup>low</sup>.
 
-> **Naming note**: The function retains the `silico_ko` / SKO name for conciseness and memorability. Results should be interpreted as transcriptional correlates of high vs low endogenous expression, **not** as causal knockout effects.
-
-
 ## Data & Gene Setup
 
 ```{r data-setup}
@@ -166,74 +163,104 @@ if (length(res$enrichments) == 0) {
 
 ## Real-World Example: LRRK2 in VKH Disease
 
-Below we show a **real-world FIP result** from a Vogt–Koyanagi–Harada (VKH) disease study, 
-applying `silico_ko()` to **LRRK2** in a scRNA-seq cohort of 34 VKH patients and 14 healthy controls.
+The demo above uses `pbmc_small` (80 cells) where FIP cannot produce
+meaningful enrichment. Below we walk through a **real-world FIP result** from
+a Vogt–Koyanagi–Harada (VKH) disease study, in which `silico_ko()` was
+applied to **LRRK2** across a scRNA-seq cohort of 34 VKH patients and
+14 healthy controls.
+
+### Load pre-computed FIP result
+
+The pre-computed result is hosted on
+[GitHub Releases](https://github.com/laleoarrow/leo.sc/releases/tag/data-v2).
+We download it once and cache it locally:
+
+```{r lrrk2-load}
+data_url <- "https://github.com/laleoarrow/leo.sc/releases/download/data-v2/LRRK2_ko_res.rds"
+cache_dir <- tools::R_user_dir("leo.sc", which = "cache")
+if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE)
+dest <- file.path(cache_dir, "LRRK2_ko_res.rds")
+if (!file.exists(dest)) {
+  message("Downloading LRRK2 FIP result (7.8 MB) ...")
+  utils::download.file(data_url, dest, mode = "wb", quiet = TRUE)
+}
+
+lrrk2 <- readRDS(dest)
+names(lrrk2)
+```
 
 ### Cell-type composition of ***g***<sup>high</sup>
 
-The ***g***<sup>high</sup> group (top 10% of LRRK2-expressing cells) was
-dominated by **CD14+ classical monocytes** (84.7%) and **FCGR3A+ non-classical
-monocytes** (13.4%). FIP's cell-type matching ensures the ***g***<sup>low</sup>
-group has the **same composition** — so any DEGs reflect LRRK2 expression
-variation *within* these lineages, not cell-type differences.
+FIP preserves cell-type composition between
+***g***<sup>high</sup> and ***g***<sup>low</sup> groups, ensuring that DEGs
+reflect variation in LRRK2 expression *within each lineage* rather than
+confounding by cell-type abundance. Let's inspect:
+
+```{r lrrk2-cell-composition}
+# Number of high- and low-expression cells
+cat("g_high cells:", length(lrrk2$high_cells), "\n")
+cat("g_low  cells:", length(lrrk2$low_cells), "\n")
+
+# Cell-type composition of the high-expression group
+knitr::kable(
+  head(lrrk2$cell_rato, 10),
+  caption = "Top 10 cell types in LRRK2-high group (pct = percentage)"
+)
+```
+
+### Differential expression summary
+
+```{r lrrk2-deg-summary}
+deg <- lrrk2$deg_results
+up <- sum(deg$avg_log2FC > 0 & deg$p_val_adj < 0.05)
+down <- sum(deg$avg_log2FC < 0 & deg$p_val_adj < 0.05)
+cat("Significant DEGs (FDR < 0.05):\n")
+cat("  Up-regulated:  ", up, "\n")
+cat("  Down-regulated:", down, "\n")
+
+# Top 10 up-regulated genes
+deg_df <- tibble::rownames_to_column(deg, "gene")
+top_up <- head(deg_df[deg_df$avg_log2FC > 0 & deg_df$p_val_adj < 0.05, ], 10)
+knitr::kable(
+  top_up[, c("gene", "avg_log2FC", "p_val_adj")],
+  digits = 3,
+  caption = "Top 10 up-regulated DEGs (LRRK2-low vs LRRK2-high)"
+)
+```
 
 ### GSEA enrichment (GO)
 
-FIP identified 2 826 up-regulated and 5 459 down-regulated DEGs
-(FDR < 0.05) between LRRK2<sup>high</sup> and LRRK2<sup>low</sup> groups,
-yielding **136 significant GO terms** via GSEA. Three representative pathways
-are shown below:
+The enrichment results are stored in `lrrk2$enrichments`:
 
-```{r lrrk2-gsea-plot, echo=FALSE, out.width="100%", fig.cap="GSEA enrichment plot for LRRK2-high vs LRRK2-low (GO)."}
-# Dynamic download to keep the R package lightweight
-data_url <- "https://github.com/laleoarrow/leo.sc/releases/download/data-v2/1.LRRK2_ko_res.qs"
-# Use a persistent cache directory to avoid re-downloading
-cache_dir <- tools::R_user_dir("leo.sc", which = "cache")
-if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE)
-dest_file <- file.path(cache_dir, "1.LRRK2_ko_res.qs")
+```{r lrrk2-enrichments}
+cat("Available enrichment results:\n")
+print(names(lrrk2$enrichments))
+```
 
-if (!file.exists(dest_file)) {
-  message("Downloading real-world LRRK2 data (4.9 MB) from GitHub...")
-  utils::download.file(data_url, dest_file, mode = "wb", quiet = TRUE)
-}
+Three representative GO pathways are visualised below using
+`enrichplot::gseaplot2()`:
 
-# Load precomputed FIP result
-res <- qs::qread(dest_file)
-
+```{r lrrk2-gsea-plot, out.width="100%", fig.width=7, fig.height=5, fig.cap="GSEA enrichment plot for LRRK2-high vs LRRK2-low contrast (GO). Top enriched pathways: antigen binding, oxidative phosphorylation, and leukocyte-mediated cytotoxicity."}
 library(enrichplot)
-p <- gseaplot2(
-  res$enrichments$GSEA_GO,
+gseaplot2(
+  lrrk2$enrichments$GSEA_GO,
   color = ggsci::pal_npg("nrc")(3),
   geneSetID = c("GO:0003823", "GO:0006119", "GO:0001909"),
   subplots = 1:2,
   pvalue_table = TRUE
 )
-print(p)
 ```
 
-The GSEA plot was generated with `enrichplot::gseaplot2()`:
-
-```r
-# Reproduce using a completed FIP result:
-library(enrichplot)
-p <- gseaplot2(
-  res$enrichments$GSEA_GO,
-  color    = ggsci::pal_npg("nrc")(3),
-  geneSetID = c("GO:0003823", "GO:0006119", "GO:0001909"),
-  subplots  = 1:2,
-  pvalue_table = TRUE
-)
-```
-
-> **Key insight**: LRRK2 is a well-known Parkinson's disease gene, but FIP
-> reveals its transcriptional impact in **immune cells** — antigen binding,
-> oxidative phosphorylation, and cytotoxicity. Notably, these computationally
-> inferred programmes align with experimental evidence: Gardet *et al.*
-> demonstrated that LRRK2 controls inflammatory cytokine production through
-> NF-κB phosphorylation and **antigen presentation** in bone marrow-derived
-> dendritic cells
-> ([*Int J Mol Sci*, 2020](https://doi.org/10.3390/ijms21176097)),
-> validating FIP's prediction of antigen binding as the top enriched
-> pathway. This concordance between *in silico* inference and wet-lab
-> perturbation underscores FIP's utility for hypothesis generation from
+> **Key biological insight.** Although LRRK2 is primarily recognised as a
+> Parkinson's disease susceptibility gene, FIP reveals its transcriptional
+> impact in **myeloid immune cells** — highlighting antigen binding, oxidative
+> phosphorylation, and leukocyte-mediated cytotoxicity as the top enriched
+> programmes. These computationally inferred pathways are consistent with
+> experimental evidence from Gardet *et al.*, who demonstrated that LRRK2
+> governs inflammatory cytokine production via NF-κB phosphorylation and
+> **antigen presentation** in bone marrow-derived dendritic cells
+> ([*Int J Mol Sci* 2020;21:6097](https://doi.org/10.3390/ijms21176097)).
+> This concordance between *in silico* inference and wet-lab perturbation
+> underscores FIP's utility for generating testable hypotheses from
 > observational single-cell data.
+
