@@ -47,7 +47,8 @@ Suggests:
     pkgdown,
     qs,
     enrichplot,
-    clusterProfiler
+    clusterProfiler,
+    org.Hs.eg.db
 Remotes: 
     laleoarrow/leo.basic,
     chris-mcginnis-ucsf/DoubletFinder,
