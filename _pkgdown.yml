@@ -65,51 +65,67 @@ footer:
     right: [built_with]
 
 reference:
-  - title: Basic Workflow
-    desc: Data loading, QC, metadata and baseline analysis utilities
+  - title: Basic Functions
+    desc: Core workflow functions located in R/basic.R
     contents:
       - read_sc_data
-      - seurat_basic_qc
-      - seurat_basic_info
-      - subset_srt
-      - get_meta_colnames
-      - get_cluster_counts
       - seurat_standard_normalize_and_scale
-  - title: Functional Inference Pipeline
-    desc: Virtual knock-out / knock-in analysis
+      - seurat_basic_qc
+      - plot_qc
+      - doublet_removal
+      - doublet_rate_dictionary
+      - seurat_basic_info
+      - contanmination_removal
+      - remove_unwant_hvg
+      - subset_srt
+      - write_10x_triple
+      - metadata_write_10x
+  - title: Metadata Management
+    desc: Metadata manipulation functions located in R/metadata.R
     contents:
-      - silico_ko
-  - title: Cell Type and Marker Analysis
+      - metadata_get_colnames
+      - metadata_keep
+      - metadata_drop
+  - title: Cell Annotation & Markers
+    desc: Marker identification and annotation utilities located in R/annotation.R
     contents:
-      - gimme_marker
-      - leo.marker
-      - leo.ROIE
+      - format_markers_for_upload
+      - sort_string_numeric_clusters
+      - get_cluster_counts
+      - filter_clusters_by_percent_or_cell_count
+      - calcROGUE
+      - mc_rogue
       - score_signature
       - plot_score_signature_heatmap
-  - title: Multi-batch and Differential Structure
+      - locate_most_different_g_in_2_group
+      - gimme_marker
+  - title: Dictionaries & Reference Data
+    desc: Built-in markers and reference data located in R/dict.R
     contents:
-      - check_gene_avg_in_multi_batch
-      - check_gene_stats_in_multi_batch
-      - subset_common_gene_in_multi_batch
-      - leo.milo
-      - leo_milo_vis
-      - leo.augur
-  - title: Visualization
-    contents:
-      - plot_qc
-      - plot_gw_density
-      - plot_highlight_cluster
-      - plot_alluvial
-      - plot_alluvial_sc
-      - plot_dbee
-  - title: Additional Utilities
+      - leo.marker
+  - title: Celltype & Cluster analysis
+    desc: Advanced cell type analysis located in R/celltype.R
     contents:
       - ROIE
-      - calcROGUE
-      - doublet_rate_dictionary
-      - doublet_removal
-      - filter_clusters_by_percent_or_cell_count
-      - format_markers_for_upload
-      - locate_most_different_g_in_2_group
-      - remove_unwant_hvg
-      - sort_string_numeric_clusters
+      - leo.ROIE
+      - leo.augur
+      - leo.milo
+      - leo_milo_vis
+  - title: In-silico Knockout
+    desc: Virtual gene perturbation simulations located in R/sko.R
+    contents:
+      - silico_ko
+  - title: Multi-batch Processing
+    desc: Functions for handling multi-batch datasets located in R/multi_batch.R
+    contents:
+      - check_gene_stats_in_multi_batch
+      - check_gene_avg_in_multi_batch
+      - subset_common_gene_in_multi_batch
+  - title: Visualizations
+    desc: Generic plotting utilities located in R/sc.plot.R
+    contents:
+      - plot_alluvial
+      - plot_alluvial_sc
+      - plot_gw_density
+      - plot_highlight_cluster
+      - plot_dbee

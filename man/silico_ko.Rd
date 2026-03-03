@@ -14,7 +14,8 @@ silico_ko(
   abs_threshold = NULL,
   deg_method = "default",
   enrichment_method = c("ORA", "GSEA"),
-  enrichment_bg = c("GO", "KEGG", "MKEGG", "Reactome")
+  enrichment_bg = c("GO", "KEGG", "MKEGG", "Reactome"),
+  simplify = TRUE
 )
 }
 \arguments{
@@ -40,6 +41,10 @@ overrides \code{pct_threshold} if provided.}
 
 \item{enrichment_bg}{Character vector. Background databases for enrichment;
 default is \code{c("GO", "KEGG", "MKEGG", "Reactome")}.}
+
+\item{simplify}{Logical. Whether to simplify redundant enrichment terms via
+\code{clusterProfiler::simplify}. Defaults to \code{TRUE}. Set to \code{FALSE}
+if enrichment results are sparse (e.g., small datasets) to avoid errors.}
 }
 \value{
 Invisibly returns a list containing:

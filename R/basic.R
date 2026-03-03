@@ -454,3 +454,131 @@ subset_srt <- function(srt, subset_col, subset_value) {
   leo.basic:: leo_log("After subset {subset_col} for **{subset_value}**, {ncol(srt)} cell{?s} remains.")
   return(srt)
 }
+
+#' Export Seurat object to 10x-style triple files
+#'
+#' @param seu Seurat object.
+#' @param out_dir Output directory.
+#' @param assay Assay name (default "RNA").
+#' @param slot Slot/layer to export: "counts" (recommended) or "data".
+#' @param compress Logical; if TRUE, write gzipped files.
+#' @param overwrite Logical; if TRUE, overwrite existing files.
+#'
+#' @return Invisibly returns a list of output file paths.
+#'
+#' @importFrom cli cli_alert_info cli_abort
+#' @importFrom Matrix writeMM
+#' @importFrom utils write.table
+#' @importFrom methods as
+#' @export
+write_10x_triple <- function(seu, out_dir, assay = "RNA", slot = "counts", compress = TRUE, overwrite = FALSE) {
+  stopifnot(inherits(seu, "Seurat"))
+  if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+
+  layer_arg <- if (slot %in% c("counts", "data", "scale.data")) slot else "counts"
+  # Standardizing for Seurat V5 layers
+  if (utils::packageVersion("SeuratObject") >= "5.0.0") {
+    mtx <- Seurat::GetAssayData(seu, assay = assay, layer = layer_arg)
+  } else {
+    mtx <- Seurat::GetAssayData(seu, assay = assay, slot = layer_arg)
+  }
+
+  if (!inherits(mtx, "dgCMatrix")) mtx <- methods::as(mtx, "dgCMatrix")
+
+  features_out <- data.frame(
+    feature_id = rownames(mtx),
+    feature_name = rownames(mtx),
+    feature_type = assay,
+    stringsAsFactors = FALSE
+  )
+  barcodes_out <- data.frame(barcode = colnames(mtx), stringsAsFactors = FALSE)
+
+  suffix <- if (compress) ".gz" else ""
+  file_matrix <- file.path(out_dir, paste0("matrix.mtx", suffix))
+  file_features <- file.path(out_dir, paste0("features.tsv", suffix))
+  file_barcodes <- file.path(out_dir, paste0("barcodes.tsv", suffix))
+
+  for (f in c(file_matrix, file_features, file_barcodes)) {
+    if (file.exists(f) && !overwrite) cli::cli_abort("File exists: {f}")
+  }
+
+  cli::cli_alert_info("Writing matrix: {file_matrix}")
+  if (compress) {
+    # Matrix::writeMM with a connection doesn't always write the header correctly for gz
+    tmp_mtx <- tempfile(fileext = ".mtx")
+    Matrix::writeMM(mtx, file = tmp_mtx)
+    system(sprintf("gzip -c %s > %s", tmp_mtx, file_matrix))
+    unlink(tmp_mtx)
+  } else {
+    Matrix::writeMM(mtx, file = file_matrix)
+  }
+
+  cli::cli_alert_info("Writing features: {file_features}")
+  if (compress) {
+    con_feat <- gzfile(file_features, "wb")
+    utils::write.table(features_out, file = con_feat, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+    close(con_feat)
+  } else {
+    utils::write.table(features_out, file = file_features, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+  }
+
+  cli::cli_alert_info("Writing barcodes: {file_barcodes}")
+  if (compress) {
+    con_bc <- gzfile(file_barcodes, "wb")
+    utils::write.table(barcodes_out, file = con_bc, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+    close(con_bc)
+  } else {
+    utils::write.table(barcodes_out, file = file_barcodes, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+  }
+
+  leo_log("write_10x_triple(): wrote 10x triple to {out_dir} (assay={assay}, layer={layer_arg})")
+  invisible(list(matrix_mtx = file_matrix, features_tsv = file_features, barcodes_tsv = file_barcodes))
+}
+
+#' Export Seurat meta.data aligned to barcodes
+#'
+#' @param seu Seurat object.
+#' @param out_dir Output directory.
+#' @param file_name Output file name.
+#' @param cols Optional character vector of metadata columns to save.
+#' @param compress Logical; if TRUE, write gzipped file.
+#' @param overwrite Logical; if TRUE, overwrite existing file.
+#'
+#' @return Invisibly returns the output file path.
+#'
+#' @importFrom cli cli_alert_info cli_abort
+#' @importFrom utils write.table
+#' @importFrom tibble rownames_to_column
+#' @importFrom dplyr select all_of
+#' @importFrom magrittr %>%
+#' @export
+metadata_write_10x <- function(seu, out_dir, file_name = "metadata.tsv.gz", cols = NULL, compress = TRUE, overwrite = FALSE) {
+  stopifnot(inherits(seu, "Seurat"))
+  if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+
+  md <- seu@meta.data %>% tibble::rownames_to_column("barcode")
+
+  if (!is.null(cols)) {
+    missing_cols <- setdiff(cols, colnames(seu@meta.data))
+    if (length(missing_cols) > 0) {
+      cli::cli_alert_info("metadata_write_10x(): not in meta.data (ignored): {paste(missing_cols, collapse = ', ')}")
+    }
+    keep_cols <- intersect(cols, colnames(seu@meta.data))
+    md <- md %>% dplyr::select(barcode, dplyr::all_of(keep_cols))
+  }
+
+  file_out <- file.path(out_dir, file_name)
+  if (file.exists(file_out) && !overwrite) cli::cli_abort("File exists: {file_out}")
+
+  cli::cli_alert_info("Writing metadata: {file_out}")
+  if (compress || grepl("\\.gz$", file_out)) {
+    con_md <- gzfile(file_out, "wb")
+    utils::write.table(md, file = con_md, sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+    close(con_md)
+  } else {
+    utils::write.table(md, file = file_out, sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  }
+
+  leo_log("metadata_write_10x(): wrote metadata to {file_out}")
+  invisible(file_out)
+}
