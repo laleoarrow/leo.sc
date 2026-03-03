@@ -36,17 +36,6 @@ if (!is.null(pkg_root) && requireNamespace("devtools", quietly = TRUE)) {
 }
 
 silico_ko <- get("silico_ko", envir = asNamespace("leo.sc"), inherits = FALSE)
-
-# Conditional install for enrichment dependencies in tutorial
-if (Sys.getenv("GITHUB_ACTIONS") == "true") {
-  # In CI, we must ensure these are present for rendering results
-  pkgs_needed <- c("clusterProfiler", "org.Hs.eg.db")
-  missing <- pkgs_needed[!vapply(pkgs_needed, requireNamespace, quietly = TRUE, FUN.VALUE = logical(1))]
-  if (length(missing) > 0) {
-    if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager", repos = "https://cloud.r-project.org")
-    BiocManager::install(missing, update = FALSE, ask = FALSE, quiet = TRUE)
-  }
-}
 ```
 
 ## Overview
