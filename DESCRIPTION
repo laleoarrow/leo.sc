@@ -37,9 +37,7 @@ Imports:
     miloR,
     Nebulosa,
     ggrastr,
-    ggsci,
-    clusterProfiler,
-    org.Hs.eg.db
+    ggsci
 Suggests: 
     Augur,
     pbmcapply,
