@@ -35,7 +35,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::., bioc::clusterProfiler, bioc::org.Hs.eg.db
+          extra-packages: any::pkgdown, local::., bioc::clusterProfiler, bioc::org.Hs.eg.db, github::satijalab/seurat-data
           needs: website
           dependencies: '"hard"'
 

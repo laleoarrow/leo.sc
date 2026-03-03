@@ -44,10 +44,12 @@ Suggests:
     devtools,
     knitr,
     rmarkdown,
-    pkgdown
+    pkgdown,
+    SeuratData
 Remotes: 
     laleoarrow/leo.basic,
     chris-mcginnis-ucsf/DoubletFinder,
     PaulingLiu/ROGUE,
     neurorestore/Augur,
-    powellgenomicslab/Nebulosa
+    powellgenomicslab/Nebulosa,
+    satijalab/seurat-data

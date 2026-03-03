@@ -1,0 +1,149 @@
+---
+title: "FIP Case Study: TYROBP in PBMC3k"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FIP Case Study: TYROBP in PBMC3k}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE)
+
+find_leo_sc_root <- function(start = getwd()) {
+  cur <- normalizePath(start, winslash = "/", mustWork = TRUE)
+  repeat {
+    desc <- file.path(cur, "DESCRIPTION")
+    if (file.exists(desc)) {
+      desc_lines <- readLines(desc, warn = FALSE)
+      if (any(grepl("^Package:\\s*leo\\.sc\\s*$", desc_lines))) {
+        return(cur)
+      }
+    }
+    parent <- dirname(cur)
+    if (identical(parent, cur)) {
+      return(NULL)
+    }
+    cur <- parent
+  }
+}
+
+pkg_root <- find_leo_sc_root()
+if (!is.null(pkg_root) && requireNamespace("devtools", quietly = TRUE)) {
+  devtools::load_all(pkg_root, quiet = TRUE)
+} else if (!requireNamespace("leo.sc", quietly = TRUE)) {
+  stop("Please install leo.sc, or render from a leo.sc source checkout.")
+}
+
+silico_ko <- get("silico_ko", envir = asNamespace("leo.sc"), inherits = FALSE)
+```
+
+## Context
+
+This case study applies FIP (`silico_ko()`) to the classic **PBMC3k** dataset
+([10x Genomics, 2016](https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/pbmc3k))
+to infer transcriptional programs associated with high endogenous expression of **TYROBP** —
+a myeloid DAP12 adaptor protein critical for monocyte/macrophage activation and innate immune signalling.
+
+Compared with the [minimal pbmc_small demo](tutorial-sko.html), this vignette uses a
+properly annotated 2,700-cell dataset to demonstrate that FIP produces statistically
+meaningful DEG and enrichment results.
+
+## Data
+
+```{r data-setup}
+# Requires SeuratData >= 0.2.2 (github::satijalab/seurat-data)
+if (!requireNamespace("SeuratData", quietly = TRUE)) {
+  stop("SeuratData not found. Install with: devtools::install_github('satijalab/seurat-data')")
+}
+
+suppressMessages(SeuratData::InstallData("pbmc3k"))
+suppressMessages(data("pbmc3k.final", package = "SeuratData"))
+
+# pbmc3k.final has pre-computed clusters and canonical cell-type labels in `seurat_annotations`
+# Reference: https://satijalab.org/seurat/articles/pbmc3k_tutorial
+srt <- pbmc3k.final
+srt$cell_anno <- as.character(srt$seurat_annotations)
+
+cli::cli_alert_info("Dataset: {ncol(srt)} cells × {nrow(srt)} genes | {length(unique(srt$cell_anno))} cell types")
+
+# Overview of cell-type composition
+ct_tbl <- as.data.frame(sort(table(srt$cell_anno), decreasing = TRUE))
+colnames(ct_tbl) <- c("Cell type", "N cells")
+knitr::kable(ct_tbl, caption = "PBMC3k cell-type composition")
+```
+
+## FIP: TYROBP Knock-High Analysis
+
+TYROBP (DAP12) is abundantly expressed in **CD14+ Monocytes** and acts as a signalling
+scaffold for multiple innate immune receptors. FIP contrasts the high- vs low-expression
+groups to reveal associated transcriptional programmes.
+
+```{r run-sko}
+res <- silico_ko(
+  all = srt,
+  gene = "TYROBP",
+  sko_mode = "ko", # "ko" = compare high vs low expressors
+  cell_col = "cell_anno",
+  filter_cell_threshold = 10, # exclude cell types with < 10 expressing cells
+  pct_threshold = 0.1, # top/bottom 10% of expressors per cell type
+  deg_method = "default", # Wilcoxon rank-sum via Seurat::FindMarkers
+  enrichment_method = "ORA", # over-representation analysis
+  enrichment_bg = "GO", # GO background
+  simplify = TRUE # simplify redundant GO terms
+)
+```
+
+## Results
+
+### Cell-type composition of g^high group
+
+```{r cell-composition}
+knitr::kable(res$cell_rato,
+  caption = "Cell-type composition of TYROBP-high group (g^high)"
+)
+```
+
+*Expected result:* CD14+ Monocytes should dominate the g^high fraction, consistent with
+TYROBP's canonical role in myeloid cells.
+
+### Differential expression
+
+```{r deg-summary}
+deg <- tibble::rownames_to_column(res$deg_results, "gene")
+n_up <- sum(deg$avg_log2FC > 0 & deg$p_val_adj < 0.05, na.rm = TRUE)
+n_down <- sum(deg$avg_log2FC < 0 & deg$p_val_adj < 0.05, na.rm = TRUE)
+cli::cli_alert_info("DEG summary — upregulated in g^high: {n_up} | downregulated: {n_down}")
+
+top_up <- head(deg[deg$avg_log2FC > 0 & !is.na(deg$p_val_adj), ], 5)
+top_down <- head(deg[deg$avg_log2FC < 0 & !is.na(deg$p_val_adj), ], 5)
+
+knitr::kable(top_up[, c("gene", "avg_log2FC", "p_val_adj")],
+  digits = 3, caption = "Top genes upregulated in TYROBP-high cells"
+)
+knitr::kable(top_down[, c("gene", "avg_log2FC", "p_val_adj")],
+  digits = 3, caption = "Top genes downregulated in TYROBP-high cells"
+)
+```
+
+### Enrichment
+
+```{r enrichment}
+if (length(res$enrichments) == 0 || is.null(res$enrichments)) {
+  cat("No significant enrichment returned (may indicate insufficient DEGs).\n")
+} else {
+  cat("Enrichment result slots:", paste(names(res$enrichments), collapse = ", "), "\n")
+}
+```
+
+## Interpretation
+
+FIP outputs a data-driven functional portrait of TYROBP-associated programmes.
+Up-regulated transcripts in g^high cells reflect biological processes that co-vary
+with high DAP12 expression — including innate immune activation, myeloid differentiation,
+and potentially phagocytosis — providing candidate mechanistic hypotheses for
+downstream wet-lab validation.
+
+> **Note**: FIP contrasts transcriptional states defined by endogenous expression level.
+> Results reflect correlates, not definitive causal effects of TYROBP perturbation.
+> See the [FIP method overview](tutorial-sko.html#method) for algorithmic details.

@@ -47,7 +47,11 @@ navbar:
       href: index.html
     tutorial:
       text: Tutorial
-      href: articles/tutorial-sko.html
+      menu:
+        - text: "Quick demo (pbmc_small)"
+          href: articles/tutorial-sko.html
+        - text: "Case study (PBMC3k)"
+          href: articles/tutorial-sko-pbmc3k.html
     reference:
       text: Reference
       href: reference/index.html
