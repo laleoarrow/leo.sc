@@ -65,13 +65,16 @@ Expressing-cell filter
 data("pbmc_small", package = "SeuratObject")
 srt <- pbmc_small
 
-# silico_ko() expects a cell annotation column
-srt$cell_anno <- as.character(Seurat::Idents(srt))
+# Manually map cluster IDs to biologically meaningful cell type labels
+# pbmc_small is a PBMC3k subset; cluster identities correspond to:
+#   0 -> CD14+ Monocytes (high TYROBP/LST1), 1 -> T cells (high CD3D/IL7R), 2 -> B/NK cells
+cluster_map <- c("0" = "CD14+ Monocytes", "1" = "T cells", "2" = "B/NK cells")
+srt$cell_anno <- dplyr::recode(as.character(Seurat::Idents(srt)), !!!cluster_map)
 
 candidate_genes <- c("LST1", "NKG7", "TYROBP", "IL7R", "CD3D", "MS4A1")
 
 expr_mat <- Seurat::GetAssayData(srt, layer = "data")
-cli::cli_alert_info("Successfully loaded PBMC small data.")
+cli::cli_alert_info("Successfully loaded PBMC small data ({ncol(srt)} cells, {nrow(srt)} genes).")
 
 available_genes <- intersect(candidate_genes, rownames(expr_mat))
 stopifnot(length(available_genes) > 0)
@@ -94,6 +97,8 @@ knitr::kable(gene_rank, caption = "Candidate immune genes ranked by positive-cel
 gene_use <- gene_rank$gene[[1]]
 gene_use
 ```
+
+> **⚠️ Method accuracy note:** `pbmc_small` contains only 80 cells across 3 clusters and is used here **purely for demonstration**. With such a small sample, DEG and enrichment results are statistically underpowered and should **not** be interpreted biologically. For reliable functional inference, use datasets with ≥ 500 cells per condition and well-annotated cell types.
 
 ## Run SKO
 
