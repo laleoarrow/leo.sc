@@ -95,7 +95,7 @@ res <- silico_ko(
 
 ## Results
 
-### Cell-type composition of *g*^high
+### Cell-type composition of ***g***<sup>high</sup>
 
 ```{r cell-composition}
 knitr::kable(
@@ -104,7 +104,7 @@ knitr::kable(
 )
 ```
 
-MS4A1 expression is essentially confined to **B cells** in PBMCs — the g^high group is therefore
+MS4A1 expression is essentially confined to **B cells** in PBMCs — the ***g***<sup>high</sup> group is therefore
 expected to be dominated by B cells, serving as a built-in biological sanity check for FIP.
 
 ### Differential expression

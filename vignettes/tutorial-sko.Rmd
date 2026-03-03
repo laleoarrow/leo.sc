@@ -42,7 +42,7 @@ silico_ko <- get("silico_ko", envir = asNamespace("leo.sc"), inherits = FALSE)
 
 This tutorial demonstrates the **Functional Inference Pipeline (FIP)** via `silico_ko()` from `leo.sc`.
 
-FIP estimates gene-associated transcriptional programs by comparing cells with **low** versus **high** endogenous expression of a target gene *g*, conceptually mimicking transcriptional changes after a perturbation knock-down — but entirely *in silico* using existing single-cell data. The function is named `silico_ko()` (SKO) for memorability, but the underlying logic is more akin to **endogenous knock-down / knock-high** contrasting rather than a true genetic knockout.
+FIP estimates gene-associated transcriptional programs by comparing cells with **low** versus **high** endogenous expression of a target gene ***g***, conceptually mimicking transcriptional changes after a perturbation knock-down — but entirely *in silico* using existing single-cell data. The function is named `silico_ko()` (SKO) for memorability, but the underlying logic is more akin to **endogenous knock-down / knock-high** contrasting rather than a true genetic knockout.
 
 - **Dataset**: `SeuratObject::pbmc_small` (80-cell Seurat demo object, for illustration only)
 - **Goal**: Identify functional gene programs associated with high expression of a target immune gene
@@ -54,10 +54,10 @@ FIP proceeds in six steps:
 
 1. **Filter**: Exclude cells with zero target-gene expression; remove rare cell types (< `filter_cell_threshold` cells).
 2. **Rank**: Rank all remaining *g*-expressing cells (*N*) by expression of the target gene.
-3. **Select g^high**: Select the top cells (top `pct_threshold`% or `abs_threshold` cells) as the **high-expression group**, preserving cell-type composition.
-4. **Match g^low**: Select an equal number of bottom cells as the **low-expression group** with matched cell-type composition to minimise lineage confounding.
-5. **DEG**: Apply `Seurat::FindMarkers()` (Wilcoxon rank-sum; *g^low* as `ident.1`) to identify differentially expressed programs between groups.
-6. **Enrichment**: Run `leo.basic::leo_enrich()` (ORA / GSEA against GO, KEGG, or custom backgrounds) to infer the biological functions associated with *g^high* vs *g^low*.
+3. **Select *g*<sup>high</sup>**: Select the top cells (top `pct_threshold`% or `abs_threshold` cells) as the **high-expression group**, preserving cell-type composition.
+4. **Match *g*<sup>low</sup>**: Select an equal number of bottom cells as the **low-expression group** with matched cell-type composition to minimise lineage confounding.
+5. **DEG**: Apply `Seurat::FindMarkers()` (Wilcoxon rank-sum; ***g***<sup>low</sup> as `ident.1`) to identify differentially expressed programs between groups.
+6. **Enrichment**: Run `leo.basic::leo_enrich()` (ORA / GSEA against GO, KEGG, or custom backgrounds) to infer the biological functions associated with ***g***<sup>high</sup> vs ***g***<sup>low</sup>.
 
 > **Naming note**: The function retains the `silico_ko` / SKO name for conciseness and memorability. Results should be interpreted as transcriptional correlates of high vs low endogenous expression, **not** as causal knockout effects.
 
