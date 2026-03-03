@@ -19,6 +19,9 @@
 #' @param enrichment_method Character vector. Enrichment methods to run; default is \code{c("ORA", "GSEA")}.
 #' @param enrichment_bg Character vector. Background databases for enrichment;
 #'   default is \code{c("GO", "KEGG", "MKEGG", "Reactome")}.
+#' @param simplify Logical. Whether to simplify redundant enrichment terms via
+#'   \code{clusterProfiler::simplify}. Defaults to \code{TRUE}. Set to \code{FALSE}
+#'   if enrichment results are sparse (e.g., small datasets) to avoid errors.
 #'
 #' @details
 #' The pipeline includes:
@@ -64,7 +67,8 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
                       abs_threshold = NULL, # if set, will override pct_threshold
                       deg_method = "default",
                       enrichment_method = c("ORA", "GSEA"),
-                      enrichment_bg = c("GO", "KEGG", "MKEGG", "Reactome")){
+                      enrichment_bg = c("GO", "KEGG", "MKEGG", "Reactome"),
+                      simplify = TRUE){
   # Here we develop a new pipeline to estimate the effect of the virtual knock-down for the genes of interests.
   if (!gene %in% rownames(all)) return(leo_log("Gene {gene} not found in the dataset.", level = "danger"))
   if (length(gene) > 1) return(leo_log("Only one gene can be processed at a time.", level = "danger"))
@@ -215,12 +219,18 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
     dplyr::arrange(dplyr::desc(avg_log2FC)) %>%
     leo.basic::format_geneList()
 
-  enrichment_res <- leo.basic::leo_enrich(
-    ORA_gene, GSEA_geneList,
-    simplify   = TRUE,
-    input      = "SYMBOL",
-    method     = enrichment_method,
-    background = enrichment_bg
+  enrichment_res <- tryCatch(
+    leo.basic::leo_enrich(
+      ORA_gene, GSEA_geneList,
+      simplify   = simplify,
+      input      = "SYMBOL",
+      method     = enrichment_method,
+      background = enrichment_bg
+    ),
+    error = function(e) {
+      cli::cli_alert_warning("Enrichment failed or returned empty results: {conditionMessage(e)}")
+      list()
+    }
   )
 
   # return

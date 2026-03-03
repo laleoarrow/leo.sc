@@ -107,7 +107,8 @@ res <- silico_ko(
   pct_threshold = 0.2,
   deg_method = "default",
   enrichment_method = "ORA",
-  enrichment_bg = "GO"
+  enrichment_bg = "GO",
+  simplify = FALSE # pbmc_small is too small for reliable simplification
 )
 
 names(res)
