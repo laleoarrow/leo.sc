@@ -21,7 +21,7 @@
 
 <img src="man/figures/image-1.png" width="90%" />
 
-*A focused exploratory toolkit for single-cell data analysis, visualization, and in-silico perturbation.*
+*A focused exploratory toolkit for single-cell data analysis, visualization, and functional inference.*
 
 ---
 
