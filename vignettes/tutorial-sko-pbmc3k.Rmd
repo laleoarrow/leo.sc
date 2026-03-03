@@ -100,7 +100,7 @@ res <- silico_ko(
 ```{r cell-composition}
 knitr::kable(
   res$cell_rato,
-  caption = "Cell-type composition of MS4A1-high group (g^high)"
+  caption = "Cell-type composition of MS4A1-high group (g<sup>high</sup>)"
 )
 ```
 
@@ -136,26 +136,37 @@ transcriptional programme rather than random correlation.
 
 ```{r enrichment}
 if (length(res$enrichments) == 0 || is.null(res$enrichments)) {
-  cat("No significant enrichment returned.\n")
+  cat("No significant enrichment returned (may indicate insufficient DEGs).\n")
 } else {
-  print(names(res$enrichments))
+  cat("Enrichment result slots:", paste(names(res$enrichments), collapse = ", "), "\n\n")
+  # Display the first available enrichment result (top 10 terms)
+  first_slot <- res$enrichments[[1]]
+  if (!is.null(first_slot) && nrow(first_slot) > 0) {
+    top_terms <- head(first_slot[order(first_slot$p.adjust), ], 10)
+    knitr::kable(
+      top_terms[, intersect(
+        c("Description", "GeneRatio", "p.adjust", "Count"),
+        colnames(top_terms)
+      )],
+      digits = 4,
+      caption = "Top 10 enriched GO terms in MS4A1-high vs MS4A1-low contrast"
+    )
+  }
 }
 ```
 
 ## Interpretation
 
-FIP recapitulates the known transcriptional identity of B cells through the lens of MS4A1
-endogenous expression. DEGs contrasting the high- versus low-expression strata are enriched
-for B cell-specific functional terms — including adaptive immune response, B cell activation,
-immunoglobulin production, and antigen receptor-mediated signalling (GO-BP / GO-MF / KEGG
-B cell receptor signalling pathway). These terms consistently rank among the most significant
-in their respective GO and pathway categories, reflecting the highly lineage-restricted
-co-expression programme of MS4A1.
+If enrichment results are available above, the top GO terms should reflect
+biology consistent with MS4A1 (CD20) — a canonical B cell surface marker and
+the pharmacological target of Rituximab. Expected functional themes include
+adaptive immune response, B cell activation, immunoglobulin production, and
+antigen receptor-mediated signalling.
 
-This result serves as a **methodological positive control**: because MS4A1 biology is
-well-established, the alignment between FIP output and known B cell function demonstrates
-that the pipeline faithfully captures gene-associated transcriptional programmes from
-endogenous expression variation — a prerequisite for its application to lesser-characterised
+This alignment between FIP output and well-established B cell biology serves as
+a **methodological positive control**, demonstrating that the pipeline can
+faithfully capture gene-associated transcriptional programmes from endogenous
+expression variation — a prerequisite for applying FIP to lesser-characterised
 GWAS-prioritised candidates.
 
 > **Caution**: FIP contrasts endogenous expression strata, not experimental perturbations.
