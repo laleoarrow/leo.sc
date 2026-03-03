@@ -1,0 +1,76 @@
+---
+title: "Installation Guide"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Installation Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Overview
+
+Welcome to **leo.sc**! This guide outlines the recommended steps to install the package and its dependencies. Since `leo.sc` relies on various CRAN, Bioconductor, and GitHub-hosted packages, a structured installation approach ensures a smooth setup.
+
+## Prerequisites
+
+Ensure you have a recent version of **R (>= 4.1.0)** installed. We highly recommend using [RStudio](https://posit.co/download/rstudio-desktop/) as your integrated development environment (IDE).
+
+You will need the `devtools` or `remotes` package to install from GitHub:
+
+```{r install-devtools, eval=FALSE}
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+```
+
+## Standard Installation
+
+The most straightforward method to install `leo.sc` is directly from GitHub. The `devtools::install_github` function will automatically attempt to resolve and install dependencies listed in the package configuration.
+
+```{r install-leosc, eval=FALSE}
+devtools::install_github("laleoarrow/leo.sc")
+```
+
+## Troubleshooting Dependencies
+
+Bioinformatics packages often have complex dependency trees. If the standard installation fails due to missing packages, follow these targeted troubleshooting steps:
+
+### 1. Bioconductor Dependencies
+
+Several core functions in `leo.sc` depend on Bioconductor infrastructure (e.g., `clusterProfiler`, `org.Hs.eg.db`, `enrichplot`). If these fail to install automatically, install them manually using BiocManager:
+
+```{r install-bioc, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+BiocManager::install(c(
+  "clusterProfiler",
+  "org.Hs.eg.db",
+  "enrichplot"
+))
+```
+
+### 2. GitHub-Hosted Dependencies
+
+`leo.sc` relies on other custom packages, notably `leo.basic` and `DoubletFinder`. While these are declared as remotes, network timeouts or API limits can sometimes interrupt their installation. You can install them manually beforehand:
+
+```{r install-remotes, eval=FALSE}
+devtools::install_github("chris-mcginnis-ucsf/DoubletFinder")
+devtools::install_github("laleoarrow/leo.sc")
+```
+
+## Verification
+
+Once the installation completes, verify that the package loads successfully into your R session:
+
+```{r verify_install, eval=FALSE}
+library(leo.sc)
+cli::cli_alert_success("leo.sc loaded successfully!")
+```
+
+If you encounter persistent issues during installation, please open an issue on the [leo.sc GitHub repository](https://github.com/laleoarrow/leo.sc/issues).
