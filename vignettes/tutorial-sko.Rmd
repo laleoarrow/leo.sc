@@ -186,11 +186,21 @@ FIP identified 2 826 up-regulated and 5 459 down-regulated DEGs
 yielding **136 significant GO terms** via GSEA. Three representative pathways
 are shown below:
 
-```{r lrrk2-gsea-plot, echo=FALSE, out.width="100%", fig.cap="GSEA enrichment plot for LRRK2-high vs LRRK2-low contrast (GO terms). Top enriched pathways include antigen binding, oxidative phosphorylation, and leukocyte mediated cytotoxicity — consistent with LRRK2's established roles in innate immune signalling and mitochondrial function."}
 ```{r lrrk2-gsea-plot, echo=FALSE, out.width="100%", fig.cap="GSEA enrichment plot for LRRK2-high vs LRRK2-low (GO)."}
+# Dynamic download to keep the R package lightweight
+data_url <- "https://github.com/laleoarrow/leo.sc/releases/download/data-v2/1.LRRK2_ko_res.qs"
+# Use a persistent cache directory to avoid re-downloading
+cache_dir <- tools::R_user_dir("leo.sc", which = "cache")
+if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE)
+dest_file <- file.path(cache_dir, "1.LRRK2_ko_res.qs")
+
+if (!file.exists(dest_file)) {
+  message("Downloading real-world LRRK2 data (4.9 MB) from GitHub...")
+  utils::download.file(data_url, dest_file, mode = "wb", quiet = TRUE)
+}
+
 # Load precomputed FIP result
-qs_file <- system.file("extdata", "1.LRRK2_ko_res.qs", package = "leo.sc")
-res <- qs::qread(qs_file)
+res <- qs::qread(dest_file)
 
 library(enrichplot)
 p <- gseaplot2(
@@ -201,7 +211,6 @@ p <- gseaplot2(
   pvalue_table = TRUE
 )
 print(p)
-```
 ```
 
 The GSEA plot was generated with `enrichplot::gseaplot2()`:
@@ -226,7 +235,7 @@ p <- gseaplot2(
 > NF-κB phosphorylation and **antigen presentation** in bone marrow-derived
 > dendritic cells
 > ([*Int J Mol Sci*, 2020](https://doi.org/10.3390/ijms21176097)),
-> directly validating FIP's prediction of antigen binding as the top enriched
+> validating FIP's prediction of antigen binding as the top enriched
 > pathway. This concordance between *in silico* inference and wet-lab
 > perturbation underscores FIP's utility for hypothesis generation from
 > observational single-cell data.
