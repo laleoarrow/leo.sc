@@ -206,5 +206,13 @@ p <- gseaplot2(
 
 > **Key insight**: LRRK2 is a well-known Parkinson's disease gene, but FIP
 > reveals its transcriptional impact in **immune cells** — antigen binding,
-> oxidative phosphorylation, and cytotoxicity — aligning with emerging
-> evidence for LRRK2 in innate immune regulation and autoimmune disease.
+> oxidative phosphorylation, and cytotoxicity. Notably, these computationally
+> inferred programmes align with experimental evidence: Gardet *et al.*
+> demonstrated that LRRK2 controls inflammatory cytokine production through
+> NF-κB phosphorylation and **antigen presentation** in bone marrow-derived
+> dendritic cells
+> ([*Int J Mol Sci*, 2020](https://doi.org/10.3390/ijms21176097)),
+> directly validating FIP's prediction of antigen binding as the top enriched
+> pathway. This concordance between *in silico* inference and wet-lab
+> perturbation underscores FIP's utility for hypothesis generation from
+> observational single-cell data.
