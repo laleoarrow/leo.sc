@@ -4,10 +4,32 @@
 
 *Single-cell analysis and visualization suite for the LEO universe.*
 
-[![leo.sc](https://img.shields.io/badge/dynamic/json?label=leo.sc&query=$.Version&url=https://laleoarrow.r-universe.dev/api/packages/leo.sc&style=for-the-badge&color=226e63&logo=r&logoColor=white)](https://laleoarrow.r-universe.dev/leo.sc)
-[![R-universe](https://github.com/r-universe/laleoarrow/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/r-universe/laleoarrow/actions/workflows/build.yml)
-[![R-CMD-check](https://img.shields.io/github/actions/workflow/status/laleoarrow/leo.sc/R-CMD-check.yaml?branch=main&label=R-CMD-check&style=for-the-badge&logo=github)](https://github.com/laleoarrow/leo.sc/actions/workflows/R-CMD-check.yaml)
-[![Lifecycle](https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge&logo=jekyll&logoColor=white)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+<p align="center">
+  <a href="https://laleoarrow.r-universe.dev/leo.sc">
+    <img src="https://img.shields.io/badge/dynamic/json?label=leo.sc&query=$.Version&url=https://laleoarrow.r-universe.dev/api/packages/leo.sc&style=for-the-badge&color=226e63&logo=r&logoColor=white" />
+  </a>
+  <a href="https://github.com/r-universe/laleoarrow/actions/workflows/build.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/r-universe/laleoarrow/build.yml?branch=master&label=R-universe&style=for-the-badge&logo=r&logoColor=white" />
+  </a>
+  <a href="https://github.com/laleoarrow/leo.sc/actions/workflows/R-CMD-check.yaml">
+    <img src="https://img.shields.io/github/actions/workflow/status/laleoarrow/leo.sc/R-CMD-check.yaml?branch=main&label=R-CMD-check&style=for-the-badge&logo=github" />
+  </a>
+  <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental">
+    <img src="https://img.shields.io/badge/Lifecycle-Experimental-339999?style=for-the-badge&logo=jekyll&logoColor=white" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.researchgate.net/profile/Ao-Lu-5">
+    <img src="https://img.shields.io/badge/ResearchGate-Ao%20Lu-00CCBB?logo=researchgate&logoColor=white&style=for-the-badge" />
+  </a>
+  <a href="https://orcid.org/0009-0001-0927-4468">
+    <img src="https://img.shields.io/badge/ORCID-0009--0001--0927--4468-A6CE39?logo=orcid&logoColor=white&style=for-the-badge" />
+  </a>
+  <a href="https://github.com/laleoarrow/leo.sc">
+    <img src="https://img.shields.io/badge/GitHub-laleoarrow-181717?logo=github&logoColor=white&style=for-the-badge" />
+  </a>
+</p>
 
 <img src="man/figures/image-1.png" width="90%" />
 

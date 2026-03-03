@@ -68,10 +68,8 @@ srt$cell_anno <- as.character(Seurat::Idents(srt))
 
 candidate_genes <- c("LST1", "NKG7", "TYROBP", "IL7R", "CD3D", "MS4A1")
 
-expr_mat <- tryCatch(
-  Seurat::GetAssayData(srt, layer = "data"),
-  error = function(e) Seurat::GetAssayData(srt, slot = "data")
-)
+expr_mat <- Seurat::GetAssayData(srt, layer = "data")
+cli::cli_alert_info("Successfully loaded PBMC small data.")
 
 available_genes <- intersect(candidate_genes, rownames(expr_mat))
 stopifnot(length(available_genes) > 0)
