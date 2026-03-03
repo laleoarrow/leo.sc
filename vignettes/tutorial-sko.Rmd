@@ -189,12 +189,27 @@ lrrk2 <- readRDS(dest)
 names(lrrk2)
 ```
 
+### Understanding the comparison direction
+
+In FIP's **KO mode**, `ident.1 = "low"` (simulated knock-out) and
+`ident.2 = "high"` (wild-type–like). According to `Seurat::FindMarkers()`
+convention:
+
+- **`avg_log2FC > 0`** → gene is **up-regulated after simulated KO** (more expressed in *g*<sup>low</sup>)
+- **`avg_log2FC < 0`** → gene is **down-regulated after simulated KO** (more expressed in *g*<sup>high</sup>)
+
+```{r lrrk2-direction}
+# Confirm comparison direction stored in the result
+cat("ident.1 (test):", unique(lrrk2$deg_results$ident.1), "\n")
+cat("ident.2 (ref): ", unique(lrrk2$deg_results$ident.2), "\n")
+```
+
 ### Cell-type composition of ***g***<sup>high</sup>
 
 FIP preserves cell-type composition between
 ***g***<sup>high</sup> and ***g***<sup>low</sup> groups, ensuring that DEGs
 reflect variation in LRRK2 expression *within each lineage* rather than
-confounding by cell-type abundance. Let's inspect:
+confounding by cell-type abundance:
 
 ```{r lrrk2-cell-composition}
 # Number of high- and low-expression cells
@@ -215,16 +230,16 @@ deg <- lrrk2$deg_results
 up <- sum(deg$avg_log2FC > 0 & deg$p_val_adj < 0.05)
 down <- sum(deg$avg_log2FC < 0 & deg$p_val_adj < 0.05)
 cat("Significant DEGs (FDR < 0.05):\n")
-cat("  Up-regulated:  ", up, "\n")
-cat("  Down-regulated:", down, "\n")
+cat("  Up after KO (log2FC > 0):  ", up, "\n")
+cat("  Down after KO (log2FC < 0):", down, "\n")
 
-# Top 10 up-regulated genes
+# Top 10 genes up-regulated after simulated KO
 deg_df <- tibble::rownames_to_column(deg, "gene")
 top_up <- head(deg_df[deg_df$avg_log2FC > 0 & deg_df$p_val_adj < 0.05, ], 10)
 knitr::kable(
   top_up[, c("gene", "avg_log2FC", "p_val_adj")],
   digits = 3,
-  caption = "Top 10 up-regulated DEGs (LRRK2-low vs LRRK2-high)"
+  caption = "Top 10 genes up-regulated after simulated LRRK2 knock-out"
 )
 ```
 
@@ -251,16 +266,16 @@ gseaplot2(
 )
 ```
 
-> **Key biological insight.** Although LRRK2 is primarily recognised as a
-> Parkinson's disease susceptibility gene, FIP reveals its transcriptional
-> impact in **myeloid immune cells** — highlighting antigen binding, oxidative
-> phosphorylation, and leukocyte-mediated cytotoxicity as the top enriched
-> programmes. These computationally inferred pathways are consistent with
-> experimental evidence from Gardet *et al.*, who demonstrated that LRRK2
-> governs inflammatory cytokine production via NF-κB phosphorylation and
-> **antigen presentation** in bone marrow-derived dendritic cells
+> **Key biological insight.** All three pathways show **positive NES**,
+> meaning they are **up-regulated in the LRRK2-low (simulated KO) group**.
+> This implies that LRRK2 normally **suppresses** these immune programmes
+> under physiological conditions. Notably, this computational prediction
+> aligns with experimental evidence: Gardet *et al.* demonstrated that
+> LRRK2 controls inflammatory cytokine production via NF-κB
+> phosphorylation and **antigen presentation** in bone marrow-derived
+> dendritic cells
 > ([*Int J Mol Sci* 2020;21:6097](https://doi.org/10.3390/ijms21176097)).
-> This concordance between *in silico* inference and wet-lab perturbation
-> underscores FIP's utility for generating testable hypotheses from
-> observational single-cell data.
+> The concordance between FIP's *in silico* inference and wet-lab
+> perturbation underscores the method's utility for generating testable
+> hypotheses from observational single-cell data.
 
