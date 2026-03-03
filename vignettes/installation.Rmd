@@ -64,7 +64,7 @@ pak::pkg_install(github_deps)
 
 Once the installation completes, verify that the package loads successfully into your R session:
 
-```{r verify_install, eval=FALSE}
+```{r verify_install}
 library(leo.sc)
 cli::cli_alert_success("leo.sc loaded successfully!")
 ```
