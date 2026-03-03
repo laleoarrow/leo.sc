@@ -66,13 +66,13 @@ data("pbmc_small", package = "SeuratObject")
 srt <- pbmc_small
 
 # Annotate clusters with broad cell-type labels
+# Source: https://satijalab.org/seurat/articles/pbmc3k_tutorial
 srt$cell_anno <- dplyr::recode(
   as.character(Seurat::Idents(srt)),
   "0" = "T/NK cells", "1" = "CD14+ Monocytes", "2" = "B cells"
 )
 
-# Pick a target gene: any gene expressed in at least some cells.
-# Here we choose NKG7 for illustration; users can substitute any gene of interest.
+# Pick a target gene: here we choose NKG7 for illustration.
 gene_use <- "NKG7"
 gene_use
 ```
