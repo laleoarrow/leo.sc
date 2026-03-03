@@ -56,7 +56,7 @@ devtools::install_github("laleoarrow/leo.sc")
 We encourage and welcome contributions to LEO from the community. If you are interested in contributing code or documentation, please contact me by submitting a issue.
 
 ### License
-The `leo.sc` package is open-source software. Please refer to the [LICENSE.md](LICENSE.md) file for terms and restrictions (GPL-3.0 License). Note that other packages in the LEO ecosystem may have different licensing terms.
+The `leo.sc` package is open-source software. Please refer to the [LICENSE.md](LICENSE.md) file for terms and restrictions (GPL-3.0 License).
 
 ### Contact Information
 For more information or assistance, please contact us at [Ao Lu](mailto:luao@stu.cqmu.edu.cn).
