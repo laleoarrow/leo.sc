@@ -55,18 +55,13 @@ For a minimal, dependency-free demonstration, see the [pbmc_small quick demo](tu
 ## Data
 
 ```{r data-setup}
-if (!requireNamespace("SeuratData", quietly = TRUE)) {
-  stop("SeuratData not found. Install with: devtools::install_github('satijalab/seurat-data')")
-}
-
-suppressMessages(SeuratData::InstallData("pbmc3k"))
-suppressMessages(data("pbmc3k.final", package = "SeuratData"))
-
-# pbmc3k.final was saved with Seurat v3; update to current object format
-srt <- SeuratObject::UpdateSeuratObject(pbmc3k.final)
-
-# pbmc3k.final carries pre-computed Seurat clusters and canonical cell-type labels.
-# Reference: https://satijalab.org/seurat/articles/pbmc3k_tutorial
+# Download pre-processed PBMC3k (slim, 3.3 MB) from leo.sc GitHub Release
+# Full dataset: 2638 cells x 13714 genes, 9 annotated cell types (Seurat PBMC3k tutorial)
+# Source: SeuratData::pbmc3k.final, slimmed to data layer + seurat_annotations only
+rds_url <- "https://github.com/laleoarrow/leo.sc/releases/download/data-v1/pbmc3k_final_slim.rds"
+tmp <- tempfile(fileext = ".rds")
+download.file(rds_url, tmp, quiet = TRUE, mode = "wb")
+srt <- readRDS(tmp)
 srt$cell_anno <- as.character(srt$seurat_annotations)
 
 cli::cli_alert_info(
