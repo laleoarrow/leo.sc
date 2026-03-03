@@ -17,7 +17,7 @@ Welcome to **leo.sc**! This guide outlines the recommended steps to install the 
 
 ## Prerequisites
 
-Ensure you have a recent version of **R (>= 4.1.0)** installed. We highly recommend using [RStudio](https://posit.co/download/rstudio-desktop/) as your integrated development environment (IDE).
+Ensure you have a recent version of **R (>= 4.1.0)** installed. We highly recommend using [RStudio](https://posit.co/download/rstudio-desktop/) or [radian](https://github.com/randy3k/radian) running inside [VS Code](https://code.visualstudio.com/) as your integrated development environment (IDE).
 
 You will need the `devtools` or `remotes` package to install from GitHub:
 
