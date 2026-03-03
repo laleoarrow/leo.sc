@@ -78,7 +78,7 @@ gene_use
 ```
 
 
-> **⚠️ Method accuracy note:** `pbmc_small` contains only 80 cells and is used here **purely for a reproducible, dependency-free demo**. DEG and enrichment results are statistically underpowered and should **not** be interpreted biologically. For a realistic FIP result, see the [real-world example](#real-world-example-lrrk2-in-vkh-disease) below.
+> **⚠️ Method accuracy note:** `pbmc_small` contains only 80 cells and is used here **purely for a reproducible demo**. DEG and enrichment results are statistically underpowered and should **not** be interpreted biologically. For a realistic FIP result, see the [real-world example](#real-world-example-lrrk2-in-vkh-disease) below.
 
 ## Run SKO
 
