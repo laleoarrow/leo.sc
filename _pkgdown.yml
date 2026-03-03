@@ -38,13 +38,16 @@ home:
 
 navbar:
   structure:
-    left: [home, tutorial, reference]
+    left: [home, install, tutorial, reference]
     right: [search, lightswitch, github]
   components:
     home:
       icon: fa-home
       text: Home
       href: index.html
+    install:
+      text: Installation
+      href: articles/installation.html
     tutorial:
       text: Tutorial
       href: articles/tutorial-sko.html
