@@ -42,10 +42,10 @@ silico_ko <- get("silico_ko", envir = asNamespace("leo.sc"), inherits = FALSE)
 
 This tutorial demonstrates the **Functional Inference Pipeline (FIP)** via `silico_ko()` from `leo.sc`.
 
-FIP estimates gene-associated transcriptional programs by comparing cells with **low** versus **high** endogenous expression of a target gene ***g***, conceptually mimicking transcriptional changes after a perturbation knock-down — but entirely *in silico* using existing single-cell data. The function is named `silico_ko()` (SKO) for memorability, but the underlying logic is more akin to **endogenous knock-down / knock-high** contrasting rather than a true genetic knockout.
+FIP estimates gene-associated transcriptional programs by comparing cells with **low** versus **high** endogenous expression of a target gene ***g***, conceptually mimicking transcriptional changes after a perturbation knock-down — but entirely *in silico* using existing single-cell data. The function is named `silico_ko()` (SKO) for memorability, but the underlying logic is more akin to **endogenous knock-down / over-expression** contrasting rather than a true genetic knockout.
 
 - **Dataset**: `SeuratObject::pbmc_small` (80-cell Seurat demo object, for illustration only)
-- **Goal**: Identify functional gene programs associated with high expression of a target immune gene
+- **Goal**: Identify functional gene programs associated with the perturbation of a target gene
 - **Output**: Cell-type composition of high-expressors, DEG table, and enrichment results
 
 ## Method
@@ -56,7 +56,7 @@ FIP proceeds in six steps:
 2. **Rank**: Rank all remaining ***g***-expressing cells (*N*) by expression of the target gene.
 3. **Select *g*<sup>high</sup>**: Select the top cells (top `pct_threshold` fraction, e.g., 0.1 = 10%; or `abs_threshold` absolute count) as the **high-expression group**, preserving cell-type composition.
 4. **Match *g*<sup>low</sup>**: Select an equal number of bottom cells as the **low-expression group** with matched cell-type composition to minimise lineage confounding.
-5. **DEG**: Apply `Seurat::FindMarkers()` (Wilcoxon rank-sum; ***g***<sup>low</sup> as `ident.1`) to identify differentially expressed programs between groups.
+5. **DEG**: Apply `Seurat::FindMarkers()` (Wilcoxon rank-sum; ***g***<sup>low</sup> as `ident.1`) to identify differentially expressed genes between groups.
 6. **Enrichment**: Run `leo.basic::leo_enrich()` (ORA / GSEA against GO, KEGG, or custom backgrounds) to infer the biological functions associated with ***g***<sup>high</sup> vs ***g***<sup>low</sup>.
 
 ## Data & Gene Setup
@@ -65,55 +65,18 @@ FIP proceeds in six steps:
 data("pbmc_small", package = "SeuratObject")
 srt <- pbmc_small
 
-# Annotate clusters using canonical PBMC marker expression.
-# Verified empirically from mean expression per cluster below.
-# Reference: Seurat PBMC3k tutorial — https://satijalab.org/seurat/articles/pbmc3k_tutorial
-#   Monocytes   : TYROBP, LST1, FCGR3A  (cluster 1 — highest TYROBP/LST1)
-#   T / NK cells: CD3D, IL7R, NKG7      (cluster 0 — highest CD3D/NKG7)
-#   B cells     : MS4A1                 (cluster 2 — highest MS4A1)
-cluster_map <- c("0" = "T/NK cells", "1" = "CD14+ Monocytes", "2" = "B cells")
-srt$cell_anno <- dplyr::recode_values(
+# Annotate clusters with broad cell-type labels
+srt$cell_anno <- dplyr::recode(
   as.character(Seurat::Idents(srt)),
-  from = names(cluster_map),
-  to = unname(cluster_map)
+  "0" = "T/NK cells", "1" = "CD14+ Monocytes", "2" = "B cells"
 )
 
-candidate_genes <- c("LST1", "NKG7", "TYROBP", "IL7R", "CD3D", "MS4A1")
-
-expr_mat <- Seurat::GetAssayData(srt, layer = "data")
-cli::cli_alert_info("Successfully loaded PBMC small data ({ncol(srt)} cells, {nrow(srt)} genes).")
-
-# Verify the annotation by checking mean expression of key markers per cluster
-marker_mat <- as.matrix(expr_mat[intersect(candidate_genes, rownames(expr_mat)), ])
-mean_by_cluster <- aggregate(t(marker_mat),
-  by = list(cluster = srt$cell_anno), FUN = mean
-)
-knitr::kable(mean_by_cluster,
-  digits = 2,
-  caption = "Mean expression of canonical markers per annotated cell type"
-)
-
-available_genes <- intersect(candidate_genes, rownames(expr_mat))
-stopifnot(length(available_genes) > 0)
-
-gene_positive_counts <- vapply(
-  available_genes,
-  function(g) sum(expr_mat[g, ] > 0),
-  numeric(1)
-)
-
-gene_rank <- data.frame(
-  gene = names(gene_positive_counts),
-  n_positive_cells = as.integer(gene_positive_counts),
-  stringsAsFactors = FALSE
-)
-gene_rank <- gene_rank[order(gene_rank$n_positive_cells, decreasing = TRUE), ]
-
-knitr::kable(gene_rank, caption = "Candidate immune genes ranked by positive-cell count")
-
-gene_use <- gene_rank$gene[[1]]
+# Pick a target gene: any gene expressed in at least some cells.
+# Here we choose NKG7 for illustration; users can substitute any gene of interest.
+gene_use <- "NKG7"
 gene_use
 ```
+
 
 > **⚠️ Method accuracy note:** `pbmc_small` contains only 80 cells and is used here **purely for a reproducible, dependency-free demo**. DEG and enrichment results are statistically underpowered and should **not** be interpreted biologically. For a realistic FIP result, see the [real-world example](#real-world-example-lrrk2-in-vkh-disease) below.
 
@@ -266,7 +229,7 @@ gseaplot2(
 )
 ```
 
-> **Key biological insight.** All three pathways show **positive NES**,
+> **Key biological insight.**: All three pathways show **positive NES**,
 > meaning they are **up-regulated in the LRRK2-low (simulated KO) group**.
 > This implies that LRRK2 normally **suppresses** these immune programmes
 > under physiological conditions. Notably, this computational prediction
@@ -277,5 +240,5 @@ gseaplot2(
 > ([*Int J Mol Sci* 2020;21:6097](https://doi.org/10.3390/ijms21176097)).
 > The concordance between FIP's *in silico* inference and wet-lab
 > perturbation underscores the method's utility for generating testable
-> hypotheses from observational single-cell data.
+> hypotheses from single-cell data.
 
