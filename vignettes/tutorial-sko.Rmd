@@ -1,8 +1,8 @@
 ---
-title: "Functional Inference Pipeline (FIP) — SKO Tutorial"
+title: "Functional Inference Pipeline (FIP) DEMO"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Functional Inference Pipeline (FIP) — SKO Tutorial}
+  %\VignetteIndexEntry{Functional Inference Pipeline (FIP) DEMO}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -118,7 +118,7 @@ gene_use <- gene_rank$gene[[1]]
 gene_use
 ```
 
-> **⚠️ Method accuracy note:** `pbmc_small` contains only 80 cells and is used here **purely for a reproducible, dependency-free demo**. DEG and enrichment results are statistically underpowered and should **not** be interpreted biologically. For a realistic FIP run with meaningful enrichment output, see the [**PBMC3k case study →**](tutorial-sko-pbmc3k.html).
+> **⚠️ Method accuracy note:** `pbmc_small` contains only 80 cells and is used here **purely for a reproducible, dependency-free demo**. DEG and enrichment results are statistically underpowered and should **not** be interpreted biologically. For a realistic FIP result, see the [real-world example](#real-world-example-lrrk2-in-vkh-disease) below.
 
 ## Run SKO
 
@@ -163,3 +163,48 @@ if (length(res$enrichments) == 0) {
 - `pbmc_small` is intentionally tiny and is only used here to keep the demo lightweight.
 - Enrichment output can be empty (`res$enrichments` may be `list()`) and this is expected in small datasets.
 - For biological interpretation, use larger datasets and review parameters such as `pct_threshold`, `filter_cell_threshold`, and the enrichment background.
+
+## Real-World Example: LRRK2 in VKH Disease
+
+The demo above uses the minimal `pbmc_small` dataset (80 cells) where FIP
+cannot produce meaningful enrichment. Below we show a **real-world FIP result**
+from a Vogt–Koyanagi–Harada (VKH) disease study, applying `silico_ko()` to
+**LRRK2** (a GWAS-prioritised gene) in a scRNA-seq cohort of ~50 000 PBMCs.
+
+### Cell-type composition of ***g***<sup>high</sup>
+
+The ***g***<sup>high</sup> group (top 10% of LRRK2-expressing cells) was
+dominated by **CD14+ classical monocytes** (84.7%) and **FCGR3A+ non-classical
+monocytes** (13.4%). FIP's cell-type matching ensures the ***g***<sup>low</sup>
+group has the **same composition** — so any DEGs reflect LRRK2 expression
+variation *within* these lineages, not cell-type differences.
+
+### GSEA enrichment (GO)
+
+FIP identified 2 826 up-regulated and 5 459 down-regulated DEGs
+(FDR < 0.05) between LRRK2<sup>high</sup> and LRRK2<sup>low</sup> groups,
+yielding **136 significant GO terms** via GSEA. Three representative pathways
+are shown below:
+
+```{r lrrk2-gsea-plot, echo=FALSE, out.width="100%", fig.cap="GSEA enrichment plot for LRRK2-high vs LRRK2-low contrast (GO terms). Top enriched pathways include antigen binding, oxidative phosphorylation, and leukocyte mediated cytotoxicity — consistent with LRRK2's established roles in innate immune signalling and mitochondrial function."}
+knitr::include_graphics("LRRK2_gsea_go.png")
+```
+
+The GSEA plot was generated with `enrichplot::gseaplot2()`:
+
+```r
+# Reproduce using a completed FIP result:
+library(enrichplot)
+p <- gseaplot2(
+  res$enrichments$GSEA_GO,
+  color    = ggsci::pal_npg("nrc")(3),
+  geneSetID = c("GO:0003823", "GO:0006119", "GO:0001909"),
+  subplots  = 1:2,
+  pvalue_table = TRUE
+)
+```
+
+> **Key insight**: LRRK2 is a well-known Parkinson's disease gene, but FIP
+> reveals its transcriptional impact in **immune cells** — antigen binding,
+> oxidative phosphorylation, and cytotoxicity — aligning with emerging
+> evidence for LRRK2 in innate immune regulation and autoimmune disease.

@@ -234,7 +234,7 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
   )
 
   # return
-  leo.basic::leo_log("Silico perturbation analysis completed successfully.", level = "success")
+  leo.basic::leo_log("FIP completed successfully.", level = "success")
   leo.basic::leo_time_elapsed(start_time)
 
 
