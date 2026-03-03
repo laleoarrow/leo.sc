@@ -62,9 +62,11 @@ if (!requireNamespace("SeuratData", quietly = TRUE)) {
 suppressMessages(SeuratData::InstallData("pbmc3k"))
 suppressMessages(data("pbmc3k.final", package = "SeuratData"))
 
+# pbmc3k.final was saved with Seurat v3; update to current object format
+srt <- SeuratObject::UpdateSeuratObject(pbmc3k.final)
+
 # pbmc3k.final carries pre-computed Seurat clusters and canonical cell-type labels.
 # Reference: https://satijalab.org/seurat/articles/pbmc3k_tutorial
-srt <- pbmc3k.final
 srt$cell_anno <- as.character(srt$seurat_annotations)
 
 cli::cli_alert_info(
