@@ -75,51 +75,56 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
   if (sko_mode == "ki") leo_log("Performing in-silico knock-in for: {gene}")
 
   # Step 1: Pre-filter -------
-  # Filter out cells with zero expression for the target gene
-  leo_log("Step 1: Filter out cells with zero expression for the target gene")
+  cli::cli_alert_info("Step 1: Filtering cells expressing the target gene.")
   expr_vals <- Seurat::GetAssayData(all, layer = "data")[gene, ]
   cells_express <- names(expr_vals)[expr_vals > 0]
   n_total <- length(cells_express)
 
-  if (n_total == 0)  return(leo_log("No cells express {gene}, aborting.", level = "danger"))
-  if (n_total < 100) leo_log("Only {n_total} cell{?s} express {gene}, results may be unstable.", level = "warning")
-  all2 <- subset(all, cells = cells_express); leo_log("Found {n_total} cell{?s} expressing {gene}.", level = "info")
+  if (n_total == 0) return(leo.basic::leo_log("No cells express {gene}, aborting.", level = "danger"))
+  if (n_total < 100) leo.basic::leo_log("Only {n_total} cells express {gene}, results may be unstable.", level = "warning")
+  
+  all2 <- subset(all, cells = cells_express)
+  leo.basic::leo_log("Found {n_total} cells expressing {gene}.", level = "info")
 
-  # Filter out also the cell type with only too few number of cells
-  cell_counts_in_type <- all2@meta.data %>%
+  # Filter out cell types with too few cells
+  cell_counts_in_type <- all2[[]] %>%
     dplyr::select(!!rlang::sym(cell_col)) %>%
     dplyr::count(!!rlang::sym(cell_col)) %>%
     dplyr::filter(n > filter_cell_threshold) %>%
-    dplyr::pull(!!rlang::sym(cell_col)) %>% as.vector()
-  leo_log("Found {length(cell_counts_in_type)} cell type{?s} with more than {filter_cell_threshold} cells --> applying filtering")
+    dplyr::pull(!!rlang::sym(cell_col)) |>
+    as.vector()
+    
+  cli::cli_alert_info("Found {length(cell_counts_in_type)} cell type(s) with > {filter_cell_threshold} cells. Applying filter...")
   all2 <- subset_srt(all2, subset_col = cell_col, subset_value = cell_counts_in_type)
 
-  # Step 2: Determine number of high-expression cells to extract ------
+  # Step 2: Determine number of high-expression cells ------
   n_extract <- if (!is.null(abs_threshold)) abs_threshold else floor(n_total * pct_threshold)
-  if (n_extract < 100) {n_extract <- 100; leo_log("n_extract < 100, set to 100 to ensure minimal power", level = "warning")}  # ensure at least 100 cell
-  leo_log("Step 2: extract {.emph {n_extract}} cell{?s} with high {.emph {gene}} expression for analysis")
+  if (n_extract < 100) {
+    n_extract <- 100
+    leo.basic::leo_log("n_extract < 100, set to 100 to ensure minimal power.", level = "warning")
+  }
+  cli::cli_alert_info("Step 2: Extracting top {n_extract} cells with high {gene} expression.")
 
   # Step 3: Get top expressing cells ------
   gene_vals <- Seurat::GetAssayData(all2, layer = "data")[gene, ]
-  df_gene   <- tibble::tibble(cell = names(gene_vals),
-                              gene = gene,
-                              expr = gene_vals,
-                              cell_type = all2@meta.data[, cell_col]
+  df_gene   <- tibble::tibble(
+    cell      = names(gene_vals),
+    gene      = gene,
+    expr      = gene_vals,
+    cell_type = all2[[cell_col, drop = TRUE]]
   ) %>% dplyr::arrange(dplyr::desc(expr))
 
-  # We set a quota for each cell type in case we can not locate bottom cell
-  leo_log("Calculating quota for each cell type based on 50% of expressing cells")
+  cli::cli_alert_info("Calculating quota for each cell type based on 50% of expressing cells.")
   quota_tbl <- df_gene %>%
     dplyr::count(cell_type, name = "total") %>%
     dplyr::mutate(max_keep = floor(total / 2))
+    
   quota_max <- sum(quota_tbl$max_keep)
-  if (n_extract > quota_max) {  # check if set n_extract exceeds the quota
-    leo_log("Requested {n_extract} exceeds per-type 50% cap (max {quota_max}).",
-            "Automatically reset n_extract = {quota_max} (~50% of expressing cells).", level = "warning")
+  if (n_extract > quota_max) {
+    leo.basic::leo_log("Requested {n_extract} exceeds per-type 50% cap (max {quota_max}). Resetting to {quota_max}.", level = "warning")
     n_extract <- quota_max
-    if (n_extract < 100)
-      leo_log("After adjustment, n_extract = {n_extract} < 100. Statistical power limited.", level = "warning")
-  } else { leo_log("Quota max ({quota_max}) for each cell type satisfied n_extract ({n_extract})") }
+  }
+
 
   # extraction
   greedy_quota_select <- function(df, quota_vec, n_target) {
@@ -157,7 +162,7 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
 
   # step 4: Get bottom expressing cells  ------
   # We extract same number of cells while keep the same cell type ratio as high expression group
-  leo_log("Locating bottom {.emph {n_extract}} cell{?s} with low expression of {.emph {gene}}")
+  cli::cli_alert_info("Step 4: Locating bottom {n_extract} matched cells.")
   df_gene_low <- df_gene %>% dplyr::filter(!cell %in% high_cells) %>% dplyr::arrange(expr)
   quota_low <- stats::setNames(high_cells_composition$n, high_cells_composition$cell_type)
 
@@ -167,45 +172,26 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
     n_target  = n_extract
   )
 
-  low_cells_composition <- df_gene_low %>%
-    dplyr::filter(cell %in% low_cells) %>%
-    dplyr::count(cell_type, name = "n") %>%
-    dplyr::mutate(pct = round(100 * n / sum(n), 1)) %>%
-    dplyr::arrange(dplyr::desc(n))
-
-  # defensive coding (in case)
-  if (!identical(low_cells_composition, high_cells_composition)) {
-    leo_log("The low_cells_composition and high_cells_composition is not the same; check if it is expected!", level = "warning")
-  }
-  if (length(intersect(high_cells, low_cells)) > 0) {
-    leo_log("High and low cells overlap, this is not expected! Check", level = "danger")
-  }
-  # if (length(low_cells) < n_extract) {
-  #   leo_log("Low group shortage: only {length(low_cells)} - down-scaling both groups.", level = "warning")
-  #   n_extract <- length(low_cells); high_cells <- head(high_cells, n_extract)
-  # }
-
-  # step 5: DEG for high/ low in-silico knock-out group -----
-  all2@meta.data <- all2@meta.data %>%
-    mutate(sko_group = dplyr::case_when(
-      rownames(.) %in% high_cells ~ "high",
-      rownames(.) %in% low_cells  ~ "low",
-      T ~ "other"))
+  # step 5: DEG analysis -----
+  cli::cli_alert_info("Step 5: Performing differential expression analysis ({deg_method}).")
+  all2$sko_group <- dplyr::case_when(
+    colnames(all2) %in% high_cells ~ "high",
+    colnames(all2) %in% low_cells  ~ "low",
+    TRUE ~ "other"
+  )
   all2 <- subset_srt(all2, "sko_group", c("high", "low"))
-  all2@meta.data$sko_group <- factor(all2@meta.data$sko_group, levels = c("high", "low"))
-  Seurat::Idents(all2) <- all2@meta.data$sko_group
+  all2$sko_group <- factor(all2$sko_group, levels = c("high", "low"))
+  Seurat::Idents(all2) <- all2$sko_group
 
-  # Ensure ident.1 (log2FC>1) stands for the group of interests.
-  ident.1 <- case_when(sko_mode == "ko"  ~ "low",
-                       sko_mode == "ki"  ~ "high")
-  ident.2 <- case_when(sko_mode == "ko"  ~ "high",
-                       sko_mode == "ki"  ~ "low")
+  ident.1 <- dplyr::case_when(sko_mode == "ko" ~ "low", sko_mode == "ki" ~ "high")
+  ident.2 <- dplyr::case_when(sko_mode == "ko" ~ "high", sko_mode == "ki" ~ "low")
 
   deg_results <- switch(
     deg_method,
-    "default" = Seurat::FindMarkers(all2, ident.1 = ident.1, ident.2 = ident.2),
-    "MAST"    = Seurat::FindMarkers(all2, ident.1 = ident.1, ident.2 = ident.2, test.use = "MAST")
+    "default" = Seurat::FindMarkers(all2, ident.1 = ident.1, ident.2 = ident.2, layer = "data"),
+    "MAST"    = Seurat::FindMarkers(all2, ident.1 = ident.1, ident.2 = ident.2, test.use = "MAST", layer = "data")
   )
+
   deg_results <- deg_results %>%
     dplyr::mutate(ident.1 = ident.1, ident.2 = ident.2, sko_gene = gene) %>%
     dplyr::select(sko_gene, ident.1, ident.2, dplyr::everything())
@@ -214,27 +200,33 @@ silico_ko <- function(all, gene, sko_mode = c("ko", "ki"),
   down<- sum(deg_results$avg_log2FC < 0 & deg_results$p_val_adj < 0.05)
   leo_log("DEG done --> more expressed in [{ident.1}]: {up}; more expressed in [{ident.2}]: {down}")
 
-  # step 6: Enrichment analysis ------
-  leo_log("Step 6: Enrichment analysis for {.emph {gene}} in {sko_mode} mode")
-  ORA_gene <-  deg_results %>%
+  # Step 6: Enrichment analysis ------
+  cli::cli_alert_info("Step 6: Performing enrichment analysis.")
+  ORA_gene <- deg_results %>%
     tibble::rownames_to_column("gene") %>%
     dplyr::filter(avg_log2FC > 1 & p_val_adj < 0.05) %>%
     dplyr::arrange(dplyr::desc(avg_log2FC)) %>%
-    dplyr::slice_head(n=100) %>%
+    dplyr::slice_head(n = 100) %>%
     dplyr::pull(gene)
+
   GSEA_geneList <- deg_results %>%
     tibble::rownames_to_column("gene") %>%
     dplyr::select(gene, avg_log2FC) %>%
     dplyr::arrange(dplyr::desc(avg_log2FC)) %>%
     leo.basic::format_geneList()
 
-  enrichment_res <- leo.basic::leo_enrich(ORA_gene, GSEA_geneList,
-                                          simplify = TRUE, input = "SYMBOL",
-                                          method = enrichment_method,
-                                          background = enrichment_bg)
+  enrichment_res <- leo.basic::leo_enrich(
+    ORA_gene, GSEA_geneList,
+    simplify   = TRUE,
+    input      = "SYMBOL",
+    method     = enrichment_method,
+    background = enrichment_bg
+  )
 
   # return
-  leo_time_elapsed(start_time)
+  leo.basic::leo_log("Silico perturbation analysis completed successfully.", level = "success")
+  leo.basic::leo_time_elapsed(start_time)
+
 
   invisible(list(high_cells  = high_cells,
                  low_cells   = low_cells,
