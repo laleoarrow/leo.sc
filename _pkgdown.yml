@@ -72,7 +72,7 @@ reference:
       - get_meta_colnames
       - get_cluster_counts
       - seurat_standard_normalize_and_scale
-  - title: In-silico Perturbation
+  - title: Functional Inference Pipeline
     desc: Virtual knock-out / knock-in analysis
     contents:
       - silico_ko
