@@ -166,10 +166,8 @@ if (length(res$enrichments) == 0) {
 
 ## Real-World Example: LRRK2 in VKH Disease
 
-The demo above uses the minimal `pbmc_small` dataset (80 cells) where FIP
-cannot produce meaningful enrichment. Below we show a **real-world FIP result**
-from a Vogt–Koyanagi–Harada (VKH) disease study, applying `silico_ko()` to
-**LRRK2** (a GWAS-prioritised gene) in a scRNA-seq cohort of 34 VKH patients and 14 healthy controls.
+Below we show a **real-world FIP result** from a Vogt–Koyanagi–Harada (VKH) disease study, 
+applying `silico_ko()` to **LRRK2** in a scRNA-seq cohort of 34 VKH patients and 14 healthy controls.
 
 ### Cell-type composition of ***g***<sup>high</sup>
 
