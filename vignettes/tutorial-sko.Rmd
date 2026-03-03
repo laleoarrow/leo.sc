@@ -169,7 +169,7 @@ if (length(res$enrichments) == 0) {
 The demo above uses the minimal `pbmc_small` dataset (80 cells) where FIP
 cannot produce meaningful enrichment. Below we show a **real-world FIP result**
 from a Vogt–Koyanagi–Harada (VKH) disease study, applying `silico_ko()` to
-**LRRK2** (a GWAS-prioritised gene) in a scRNA-seq cohort of ~50 000 PBMCs.
+**LRRK2** (a GWAS-prioritised gene) in a scRNA-seq cohort of 34 VKH patients and 14 healthy controls.
 
 ### Cell-type composition of ***g***<sup>high</sup>
 
@@ -187,7 +187,21 @@ yielding **136 significant GO terms** via GSEA. Three representative pathways
 are shown below:
 
 ```{r lrrk2-gsea-plot, echo=FALSE, out.width="100%", fig.cap="GSEA enrichment plot for LRRK2-high vs LRRK2-low contrast (GO terms). Top enriched pathways include antigen binding, oxidative phosphorylation, and leukocyte mediated cytotoxicity — consistent with LRRK2's established roles in innate immune signalling and mitochondrial function."}
-knitr::include_graphics("LRRK2_gsea_go.png")
+```{r lrrk2-gsea-plot, echo=FALSE, out.width="100%", fig.cap="GSEA enrichment plot for LRRK2-high vs LRRK2-low (GO)."}
+# Load precomputed FIP result
+qs_file <- system.file("extdata", "1.LRRK2_ko_res.qs", package = "leo.sc")
+res <- qs::qread(qs_file)
+
+library(enrichplot)
+p <- gseaplot2(
+  res$enrichments$GSEA_GO,
+  color = ggsci::pal_npg("nrc")(3),
+  geneSetID = c("GO:0003823", "GO:0006119", "GO:0001909"),
+  subplots = 1:2,
+  pvalue_table = TRUE
+)
+print(p)
+```
 ```
 
 The GSEA plot was generated with `enrichplot::gseaplot2()`:

@@ -44,7 +44,10 @@ Suggests:
     devtools,
     knitr,
     rmarkdown,
-    pkgdown
+    pkgdown,
+    qs,
+    enrichplot,
+    clusterProfiler
 Remotes: 
     laleoarrow/leo.basic,
     chris-mcginnis-ucsf/DoubletFinder,
