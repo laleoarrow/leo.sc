@@ -564,7 +564,7 @@ metadata_write_10x <- function(seu, out_dir, file_name = "metadata.tsv.gz", cols
       cli::cli_alert_info("metadata_write_10x(): not in meta.data (ignored): {paste(missing_cols, collapse = ', ')}")
     }
     keep_cols <- intersect(cols, colnames(seu@meta.data))
-    md <- md %>% dplyr::select(barcode, dplyr::all_of(keep_cols))
+    md <- md %>% dplyr::select(dplyr::all_of(c("barcode", keep_cols)))
   }
 
   file_out <- file.path(out_dir, file_name)

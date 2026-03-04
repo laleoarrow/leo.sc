@@ -79,7 +79,7 @@ metadata_keep <- function(seu, ..., cols = NULL, select = NULL, drop_na = FALSE,
     keep_cells <- rownames(md)[stats::complete.cases(md[, cols_keep, drop = FALSE])]
     n_drop <- nrow(md) - length(keep_cells)
     if (n_drop > 0) cli::cli_alert_info("metadata_keep(): dropping {n_drop} cells with NA in kept metadata.")
-    seu <- Seurat::subset(seu, cells = keep_cells)
+    seu <- subset(seu, cells = keep_cells)
     md <- seu@meta.data
   }
 
