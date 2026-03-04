@@ -75,7 +75,6 @@ reference:
       - doublet_removal
       - doublet_rate_dictionary
       - seurat_basic_info
-      - contanmination_removal
       - remove_unwant_hvg
       - subset_srt
       - write_10x_triple
@@ -94,7 +93,6 @@ reference:
       - get_cluster_counts
       - filter_clusters_by_percent_or_cell_count
       - calcROGUE
-      - mc_rogue
       - score_signature
       - plot_score_signature_heatmap
       - locate_most_different_g_in_2_group
